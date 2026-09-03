@@ -1,0 +1,9 @@
+{
+  "name": "nea-gestores-del-cambio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tablero Gestores del Cambio - Programa Nueva Etapa 2030 - NEA Eléctrica",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
