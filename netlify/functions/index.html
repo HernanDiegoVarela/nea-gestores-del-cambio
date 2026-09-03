@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestores del Cambio · NEA Eléctrica</title>
+<style>
+  :root{
+    --graphite: #1B2027;
+    --paper: #F4F5F1;
+    --line: #DADFCF;
+    --amber: #E0A93A;
+    --amber-deep: #B8811F;
+    --adelante: #3C6E9C;
+    --adelante-bg: #E7EEF5;
+    --interno: #4F7A4A;
+    --interno-bg: #E9F0E4;
+    --atras: #9C5A3C;
+    --atras-bg: #F5E9E1;
+    --ink: #1B2027;
+    --ink-soft: #5B6270;
+    --red: #C1503F;
+    --yellow: #D6A226;
+    --green: #4C8A57;
+    --radius: 3px;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  *{box-sizing:border-box;}
+  html,body{ height:100%; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', Arial, sans-serif;
+    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+  }
+  header{
+    background:var(--graphite); color:#fff;
+    padding:16px 28px 14px;
+    display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;
+    border-bottom:4px solid var(--amber); flex-shrink:0;
+  }
+  header .title h1{ margin:0; font-size:1.25rem; font-weight:700; }
+  header .title p{ margin:2px 0 0; color:#B7BDC8; font-size:.78rem; }
+  header .stamp{ font-family:'IBM Plex Mono', monospace; font-size:.68rem; color:var(--amber); text-align:right; line-height:1.4; }
+
+  .toolbar{
+    display:flex; gap:8px; padding:10px 28px; background:#fff; border-bottom:1px solid var(--line);
+    flex-wrap:wrap; align-items:center; flex-shrink:0;
+  }
+  .toolbar button{
+    border:1px solid var(--line); background:#fff; color:var(--ink-soft);
+    padding:6px 12px; border-radius:var(--radius); font-size:.78rem; cursor:pointer;
+    font-family:inherit; font-weight:500; transition:.15s;
+  }
+  .toolbar button.active{ background:var(--graphite); color:#fff; border-color:var(--graphite); }
+  .toolbar button:hover:not(.active){ border-color:var(--ink-soft); }
+  .toolbar .spacer{ margin-left:auto; display:flex; gap:8px; }
+  .toolbar .add-btn{ background:var(--amber); color:var(--graphite); border-color:var(--amber); font-weight:600; }
+  .toolbar .add-btn:hover{ background:var(--amber-deep); }
+  .toolbar .reset-btn{ background:#fff; color:var(--red); border-color:var(--red); font-weight:600; }
+  .toolbar .reset-btn:hover{ background:var(--red); color:#fff; }
+  .toolbar .pdf-btn{ background:#fff; color:var(--graphite); border-color:var(--graphite); font-weight:600; }
+  .toolbar .pdf-btn:hover{ background:var(--graphite); color:#fff; }
+
+  main{ flex:1; min-height:0; padding:14px 28px 16px; }
+
+  .board{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:12px;
+    height:100%;
+  }
+
+  .col{ display:flex; flex-direction:column; min-height:0; }
+  .col-head{
+    font-size:.72rem; font-weight:600; color:var(--ink-soft);
+    padding-bottom:6px; margin-bottom:8px; border-bottom:2px solid var(--line);
+    display:flex; justify-content:space-between; align-items:center; flex-shrink:0;
+  }
+  .col-head .count{
+    font-family:'IBM Plex Mono', monospace; background:var(--line); color:var(--ink);
+    padding:1px 7px; border-radius:10px; font-size:.68rem;
+  }
+  .col-body{ overflow-y:auto; flex:1; padding-right:2px; }
+
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+    padding:9px 10px; margin-bottom:8px; cursor:pointer; transition:.15s;
+  }
+  .card:hover{ border-color:var(--ink-soft); box-shadow:0 2px 6px rgba(0,0,0,.06); }
+  .card .cat-tag{
+    display:inline-block; font-size:.64rem; font-weight:600; padding:1px 7px;
+    border-radius:10px; margin-bottom:5px;
+  }
+  .cat-adelante{ background:var(--adelante-bg); color:var(--adelante); }
+  .cat-interno{ background:var(--interno-bg); color:var(--interno); }
+  .cat-atras{ background:var(--atras-bg); color:var(--atras); }
+
+  .card h3{ margin:0 0 4px; font-size:.82rem; line-height:1.3; font-weight:600; }
+  .card .meta{ display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+  .card .score{
+    font-family:'IBM Plex Mono', monospace; font-size:.68rem; font-weight:600;
+    padding:1px 6px; border-radius:10px; color:#fff;
+  }
+  .score-red{ background:var(--red); }
+  .score-yellow{ background:var(--yellow); color:var(--graphite); }
+  .score-green{ background:var(--green); }
+  .score-none{ background:var(--line); color:var(--ink-soft); }
+  .card .etapa{ font-size:.64rem; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; }
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(27,32,39,.55); display:none;
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background:#fff; width:100%; max-width:640px; max-height:88vh; overflow-y:auto;
+    border-radius:4px; padding:26px 28px 28px;
+  }
+  .modal h2{ margin:0 0 4px; font-size:1.15rem; }
+  .modal .sub{ color:var(--ink-soft); font-size:.8rem; margin-bottom:18px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:.74rem; font-weight:600; color:var(--ink-soft); margin-bottom:5px; }
+  .field textarea, .field select, .field input{
+    width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:var(--radius);
+    font-family:inherit; font-size:.86rem; color:var(--ink); background:#fff;
+  }
+  .field textarea{ min-height:64px; resize:vertical; }
+  .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .modal-actions{
+    display:flex; justify-content:space-between; align-items:center; margin-top:6px;
+    padding-top:14px; border-top:1px solid var(--line);
+  }
+  .modal-actions .score-live{ font-family:'IBM Plex Mono', monospace; font-size:.8rem; color:var(--ink-soft); }
+  .btn-primary{
+    background:var(--graphite); color:#fff; border:none; padding:9px 20px;
+    border-radius:var(--radius); font-family:inherit; font-weight:600; cursor:pointer; font-size:.85rem;
+  }
+  .btn-close{ background:none; border:none; color:var(--ink-soft); font-size:1.3rem; cursor:pointer; line-height:1; }
+  .modal-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+
+  @media print{
+    .toolbar, .overlay{ display:none !important; }
+    body{ height:auto; overflow:visible; display:block; }
+    main{ padding:0 12px; }
+    header{ border-bottom:2px solid #000; }
+    .board{ display:block; }
+    .col{ break-inside:avoid; margin-bottom:16px; }
+    .col-body{ overflow:visible; }
+    .card{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <h1>Gestores del Cambio</h1>
+    <p>Programa Nueva Etapa 2030 · NEA Eléctrica — Posadas marca el paso</p>
+  </div>
+  <div class="stamp" id="stamp">CONECTANDO…</div>
+</header>
+
+<div class="toolbar" id="toolbar"></div>
+
+<main>
+  <div class="board" id="board"></div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const ESTADOS = ["Por relevar","Relevamiento de campo","Evaluación","Acción"];
+const ETAPAS_ACCION = ["Inducción","Aprendizaje piloto","Ejecución"];
+const CATS = {
+  "Hacia adelante": {cls:"cat-adelante", short:"Adelante"},
+  "Operaciones internas": {cls:"cat-interno", short:"Interno"},
+  "Hacia atrás (Central)": {cls:"cat-atras", short:"Atrás"}
+};
+const TIPOS_ACCION = ["Correctiva (ajuste)","Inductiva","Fundacional"];
+const ADHESION = ["Sí","No","A definir"];
+const VALIDACION = ["Pendiente","En revisión","Validado","Ajustar","Frenado"];
+
+let data = [
+  card("Hacia adelante","Canales directos (Instaladores + Ferreterías/Blue)","Acción","Inducción",
+    "Hablé con Ventas: no hay BD de ferreterías, se maneja de memoria. 2 instaladores activos identificados de palabra, sin registro.",
+    8,9,9,"Sí","Validado","Inductiva","Armar BD del canal y fijar objetivo comercial con Facundo esta semana."),
+  card("Hacia adelante","CRM — selección e implementación","Evaluación","",
+    "Hoy nadie usa una herramienta de seguimiento comercial. Facundo trae experiencia de CRM previa.",
+    7,6,9,"","","",""),
+  card("Hacia adelante","Touch points / Customer journey","Por relevar","","", "","","","","",""),
+  card("Hacia adelante","UX en el punto de venta","Por relevar","","", "","","","","",""),
+  card("Hacia adelante","TOFU — captación y generación de leads","Por relevar","","", "","","","","",""),
+  card("Hacia adelante","Base de clientes — ABM y tipificación","Relevamiento de campo","",
+    "Base desactualizada según 6 de 8 vendedores; 5 de 8 dicen que actualizarla no es su función.",
+    "","","","","","",""),
+  card("Hacia adelante","Productividad y eficacia de vendedores","Por relevar","","", "","","","","",""),
+  card("Hacia adelante","Formación de equipos de atención al cliente","Por relevar","","", "","","","","",""),
+  card("Hacia adelante","Medios de mayor consulta e impacto","Por relevar","","", "","","","","",""),
+
+  card("Operaciones internas","Stock — Pareto 80/20 general","Evaluación","",
+    "Depósito confirma: reposición depende del criterio de una persona, no usan PEPS/UEPS ni ABC/Pareto hoy.",
+    6,8,8,"","Pendiente","",""),
+  card("Operaciones internas","Pareto de artículos (mostrador vs. corporativo)","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Clientes 80/20 (Pareto de clientes)","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Segmentos — similitudes y homogeneización","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Reposición (matriz de Kraljic)","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Contribución marginal vs. rotación (DuPont)","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Capacidad operativa por hora","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Desviación de stock: Tango vs. físico","Relevamiento de campo","",
+    "Depósito dice confiar 100% en el stock del sistema, pero 7 de 11 en la sucursal nombran falta de stock como lo que más falla.",
+    "","","","","","",""),
+  card("Operaciones internas","Depuración y organización de stock","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Costos actuales vs. histórico","Evaluación","",
+    "Sin cultura de reportes instalada hoy en el área.",
+    7,7,8,"","Pendiente","",""),
+  card("Operaciones internas","Cobranzas y cuentas corrientes","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Habilitaciones, HyS, seguros","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Legajos y antigüedad","Por relevar","","", "","","","","",""),
+
+  card("Hacia atrás (Central)","Protocolo de respuesta (interno + hacia Central)","Acción","Aprendizaje piloto",
+    "100% de la sucursal califica el acompañamiento de Central como parcial.",
+    7,8,6,"Sí","En revisión","Correctiva (ajuste)","Definir con Central quién participa, cuándo y cómo antes de instalarlo como norma."),
+  card("Hacia atrás (Central)","Agenda de trabajo con Central","Por relevar","","", "","","","","",""),
+];
+
+function card(cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle){
+  return {id: crypto.randomUUID(), cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle};
+}
+
+const seedData = data; // guarda la carga inicial de ejemplo, para el primer arranque
+
+function setStamp(html){ document.getElementById("stamp").innerHTML = html; }
+function nowLabel(){
+  const d = new Date();
+  return d.toLocaleTimeString("es-AR", {hour:"2-digit", minute:"2-digit"});
+}
+
+async function loadBoard(){
+  try{
+    const res = await fetch("/api/board");
+    if(!res.ok) throw new Error("no api");
+    const remote = await res.json();
+    if(remote && Array.isArray(remote) && remote.length){
+      data = remote;
+    } else {
+      // primera vez: no hay nada guardado todavía, sembramos con la data de ejemplo
+      await syncBoard(false);
+    }
+    setStamp(`CONECTADO A LA BASE<br>Última sync: ${nowLabel()}`);
+  } catch(e){
+    setStamp(`SIN CONEXIÓN A LA BASE<br>Trabajando solo en este navegador`);
+  }
+  render();
+}
+
+async function syncBoard(showFeedback = true){
+  try{
+    if(showFeedback) setStamp("GUARDANDO…");
+    const res = await fetch("/api/board", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data)
+    });
+    if(!res.ok) throw new Error("save failed");
+    setStamp(`CONECTADO A LA BASE<br>Última sync: ${nowLabel()}`);
+  } catch(e){
+    setStamp(`SIN CONEXIÓN A LA BASE<br>Cambios solo en este navegador`);
+  }
+}
+function score(c){
+  const vals = [c.fh, c.fe, c.ie].filter(v => v !== "" && v !== null && v !== undefined);
+  if(vals.length === 0) return null;
+  return (vals.reduce((a,b)=>a+Number(b),0) / vals.length);
+}
+function scoreClass(s){
+  if(s === null) return "score-none";
+  if(s < 5) return "score-red";
+  if(s < 7.5) return "score-yellow";
+  return "score-green";
+}
+
+let filter = "Todas";
+
+function renderToolbar(){
+  const tb = document.getElementById("toolbar");
+  tb.innerHTML = "";
+  ["Todas", ...Object.keys(CATS)].forEach(cat=>{
+    const b = document.createElement("button");
+    b.textContent = cat;
+    if(cat === filter) b.classList.add("active");
+    b.onclick = () => { filter = cat; render(); };
+    tb.appendChild(b);
+  });
+  const spacer = document.createElement("div");
+  spacer.className = "spacer";
+  const pdf = document.createElement("button");
+  pdf.textContent = "Exportar PDF";
+  pdf.className = "pdf-btn";
+  pdf.onclick = () => window.print();
+  const add = document.createElement("button");
+  add.textContent = "+ Nuevo frente";
+  add.className = "add-btn";
+  add.onclick = () => openModal(null);
+  const reset = document.createElement("button");
+  reset.textContent = "Cargar los 22 frentes completos";
+  reset.className = "reset-btn";
+  reset.onclick = () => {
+    if(confirm("Esto reemplaza TODO el tablero actual por el set completo de frentes (Adelante/Interno/Atrás). Los cambios que ya cargaron se pierden. ¿Seguro?")){
+      data = seedData.map(c => ({...c, id: crypto.randomUUID()}));
+      render();
+      syncBoard();
+    }
+  };
+  spacer.appendChild(pdf);
+  spacer.appendChild(reset);
+  spacer.appendChild(add);
+  tb.appendChild(spacer);
+}
+
+function render(){
+  renderToolbar();
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  ESTADOS.forEach(estado=>{
+    const col = document.createElement("div");
+    col.className = "col";
+    const items = data.filter(c => c.estado === estado && (filter === "Todas" || c.cat === filter));
+    const head = document.createElement("div");
+    head.className = "col-head";
+    head.innerHTML = `<span>${estado}</span><span class="count">${items.length}</span>`;
+    const body = document.createElement("div");
+    body.className = "col-body";
+    items.forEach(c=>{
+      const s = score(c);
+      const el = document.createElement("div");
+      el.className = "card";
+      el.innerHTML = `
+        <span class="cat-tag ${CATS[c.cat].cls}">${CATS[c.cat].short}</span>
+        <h3>${c.frente}</h3>
+        <div class="meta">
+          <span class="etapa">${estado==="Acción" && c.etapaAccion ? c.etapaAccion : (c.tipoAccion || "—")}</span>
+          <span class="score ${scoreClass(s)}">${s===null? "s/d" : s.toFixed(1)}</span>
+        </div>`;
+      el.onclick = () => openModal(c.id);
+      body.appendChild(el);
+    });
+    col.appendChild(head);
+    col.appendChild(body);
+    board.appendChild(col);
+  });
+}
+
+function openModal(id){
+  const isNew = id === null;
+  const c = isNew ? card("Hacia adelante","","Por relevar","","","","","","","","","") : data.find(x=>x.id===id);
+  const modal = document.getElementById("modal");
+  modal.innerHTML = `
+    <div class="modal-top">
+      <div>
+        <h2>${isNew ? "Nuevo frente" : c.frente || "(sin nombre)"}</h2>
+        <div class="sub">${isNew ? "Carga inicial" : c.cat}</div>
+      </div>
+      <button class="btn-close" onclick="closeModal()">&times;</button>
+    </div>
+
+    <div class="field">
+      <label>Frente</label>
+      <input id="f-frente" value="${(c.frente||"").replace(/"/g,'&quot;')}" placeholder="Nombre del frente">
+    </div>
+    <div class="field">
+      <label>Categoría</label>
+      <select id="f-cat">${Object.keys(CATS).map(k=>`<option ${k===c.cat?'selected':''}>${k}</option>`).join('')}</select>
+    </div>
+    <div class="field">
+      <label>Estado</label>
+      <select id="f-estado">${ESTADOS.map(e=>`<option ${e===c.estado?'selected':''}>${e}</option>`).join('')}</select>
+    </div>
+    <div class="field" id="etapa-wrap" style="${c.estado==='Acción'?'':'display:none;'}">
+      <label>Etapa de la acción</label>
+      <select id="f-etapa"><option value="">—</option>${ETAPAS_ACCION.map(e=>`<option ${e===c.etapaAccion?'selected':''}>${e}</option>`).join('')}</select>
+    </div>
+    <div class="field">
+      <label>Relevamiento de campo</label>
+      <textarea id="f-releva" placeholder="Qué se preguntó, qué contestaron, qué se encontró...">${c.releva||""}</textarea>
+    </div>
+    <div class="field">
+      <label>Puntuación (0–10 cada eje)</label>
+      <div class="row3">
+        <div><label style="font-weight:400;">Factib. humana</label><input id="f-fh" type="number" min="0" max="10" value="${c.fh}"></div>
+        <div><label style="font-weight:400;">Factib. económica</label><input id="f-fe" type="number" min="0" max="10" value="${c.fe}"></div>
+        <div><label style="font-weight:400;">Impacto económico</label><input id="f-ie" type="number" min="0" max="10" value="${c.ie}"></div>
+      </div>
+    </div>
+    <div class="field row2">
+      <div>
+        <label>Gestores del Cambio — ¿se pliega?</label>
+        <select id="f-adh"><option value="">—</option>${ADHESION.map(a=>`<option ${a===c.adhesion?'selected':''}>${a}</option>`).join('')}</select>
+      </div>
+      <div>
+        <label>Estado de validación</label>
+        <select id="f-val"><option value="">—</option>${VALIDACION.map(v=>`<option ${v===c.validacion?'selected':''}>${v}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Acción a motorizar — Tipo</label>
+      <select id="f-tipo"><option value="">—</option>${TIPOS_ACCION.map(t=>`<option ${t===c.tipoAccion?'selected':''}>${t}</option>`).join('')}</select>
+    </div>
+    <div class="field">
+      <label>Acción a motorizar — Detalle</label>
+      <textarea id="f-detalle" placeholder="Qué se va a hacer, con quién, en qué plazo...">${c.detalle||""}</textarea>
+    </div>
+
+    <div class="modal-actions">
+      <span class="score-live" id="score-live"></span>
+      <button class="btn-primary" onclick="saveModal('${isNew?'':c.id}')">${isNew?'Crear':'Guardar'}</button>
+    </div>
+  `;
+  document.getElementById("overlay").classList.add("show");
+  updateLiveScore();
+  ["f-fh","f-fe","f-ie"].forEach(id=>document.getElementById(id).addEventListener("input", updateLiveScore));
+  document.getElementById("f-estado").addEventListener("change", (e)=>{
+    document.getElementById("etapa-wrap").style.display = e.target.value === "Acción" ? "" : "none";
+  });
+}
+
+function updateLiveScore(){
+  const fh = document.getElementById("f-fh").value;
+  const fe = document.getElementById("f-fe").value;
+  const ie = document.getElementById("f-ie").value;
+  const s = score({fh,fe,ie});
+  document.getElementById("score-live").textContent = s===null ? "Score: s/d" : `Score: ${s.toFixed(1)}`;
+}
+
+function closeModal(){ document.getElementById("overlay").classList.remove("show"); }
+
+function saveModal(id){
+  const estado = document.getElementById("f-estado").value;
+  const vals = {
+    frente: document.getElementById("f-frente").value.trim(),
+    cat: document.getElementById("f-cat").value,
+    estado: estado,
+    etapaAccion: estado === "Acción" ? document.getElementById("f-etapa").value : "",
+    releva: document.getElementById("f-releva").value,
+    fh: document.getElementById("f-fh").value,
+    fe: document.getElementById("f-fe").value,
+    ie: document.getElementById("f-ie").value,
+    adhesion: document.getElementById("f-adh").value,
+    validacion: document.getElementById("f-val").value,
+    tipoAccion: document.getElementById("f-tipo").value,
+    detalle: document.getElementById("f-detalle").value,
+  };
+  if(!vals.frente){ alert("Ponele un nombre al frente."); return; }
+  if(id){
+    Object.assign(data.find(x=>x.id===id), vals);
+  } else {
+    data.push(card(vals.cat, vals.frente, vals.estado, vals.etapaAccion, vals.releva, vals.fh, vals.fe, vals.ie, vals.adhesion, vals.validacion, vals.tipoAccion, vals.detalle));
+  }
+  closeModal();
+  render();
+  syncBoard();
+}
+
+document.getElementById("overlay").addEventListener("click", (e)=>{
+  if(e.target.id === "overlay") closeModal();
+});
+
+loadBoard();
+</script>
+
+</body>
+</html>
