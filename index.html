@@ -302,18 +302,7 @@ function renderToolbar(){
   add.textContent = "+ Nuevo frente";
   add.className = "add-btn";
   add.onclick = () => openModal(null);
-  const reset = document.createElement("button");
-  reset.textContent = "Cargar los 22 frentes completos";
-  reset.className = "reset-btn";
-  reset.onclick = () => {
-    if(confirm("Esto reemplaza TODO el tablero actual por el set completo de frentes (Adelante/Interno/Atrás). Los cambios que ya cargaron se pierden. ¿Seguro?")){
-      data = seedData.map(c => ({...c, id: crypto.randomUUID()}));
-      render();
-      syncBoard();
-    }
-  };
   spacer.appendChild(pdf);
-  spacer.appendChild(reset);
   spacer.appendChild(add);
   tb.appendChild(spacer);
 }
