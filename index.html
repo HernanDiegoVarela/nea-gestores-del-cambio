@@ -56,6 +56,8 @@
   .toolbar .spacer{ margin-left:auto; display:flex; gap:8px; }
   .toolbar .add-btn{ background:var(--amber); color:var(--graphite); border-color:var(--amber); font-weight:600; }
   .toolbar .add-btn:hover{ background:var(--amber-deep); }
+  .toolbar .reset-btn{ background:#fff; color:var(--red); border-color:var(--red); font-weight:600; }
+  .toolbar .reset-btn:hover{ background:var(--red); color:#fff; }
   .toolbar .pdf-btn{ background:#fff; color:var(--graphite); border-color:var(--graphite); font-weight:600; }
   .toolbar .pdf-btn:hover{ background:var(--graphite); color:#fff; }
 
@@ -194,6 +196,7 @@ let data = [
     "","","","","","",""),
   card("Hacia adelante","Productividad y eficacia de vendedores","Por relevar","","", "","","","","",""),
   card("Hacia adelante","Formación de equipos de atención al cliente","Por relevar","","", "","","","","",""),
+  card("Hacia adelante","Medios de mayor consulta e impacto","Por relevar","","", "","","","","",""),
 
   card("Operaciones internas","Stock — Pareto 80/20 general","Evaluación","",
     "Depósito confirma: reposición depende del criterio de una persona, no usan PEPS/UEPS ni ABC/Pareto hoy.",
@@ -203,6 +206,7 @@ let data = [
   card("Operaciones internas","Segmentos — similitudes y homogeneización","Por relevar","","", "","","","","",""),
   card("Operaciones internas","Reposición (matriz de Kraljic)","Por relevar","","", "","","","","",""),
   card("Operaciones internas","Contribución marginal vs. rotación (DuPont)","Por relevar","","", "","","","","",""),
+  card("Operaciones internas","Capacidad operativa por hora","Por relevar","","", "","","","","",""),
   card("Operaciones internas","Desviación de stock: Tango vs. físico","Relevamiento de campo","",
     "Depósito dice confiar 100% en el stock del sistema, pero 7 de 11 en la sucursal nombran falta de stock como lo que más falla.",
     "","","","","","",""),
@@ -298,7 +302,18 @@ function renderToolbar(){
   add.textContent = "+ Nuevo frente";
   add.className = "add-btn";
   add.onclick = () => openModal(null);
+  const reset = document.createElement("button");
+  reset.textContent = "Cargar los 22 frentes completos";
+  reset.className = "reset-btn";
+  reset.onclick = () => {
+    if(confirm("Esto reemplaza TODO el tablero actual por el set completo de frentes (Adelante/Interno/Atrás). Los cambios que ya cargaron se pierden. ¿Seguro?")){
+      data = seedData.map(c => ({...c, id: crypto.randomUUID()}));
+      render();
+      syncBoard();
+    }
+  };
   spacer.appendChild(pdf);
+  spacer.appendChild(reset);
   spacer.appendChild(add);
   tb.appendChild(spacer);
 }
