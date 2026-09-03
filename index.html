@@ -56,6 +56,26 @@
   .toolbar .spacer{ margin-left:auto; display:flex; gap:8px; }
   .toolbar .add-btn{ background:var(--amber); color:var(--graphite); border-color:var(--amber); font-weight:600; }
   .toolbar .add-btn:hover{ background:var(--amber-deep); }
+  .toolbar .view-toggle{ display:flex; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+  .toolbar .view-toggle button{ border:none; border-radius:0; }
+  .toolbar .view-toggle button.active{ background:var(--graphite); color:#fff; }
+  .toolbar .csv-btn{ background:#fff; color:var(--interno); border-color:var(--interno); font-weight:600; }
+  .toolbar .csv-btn:hover{ background:var(--interno); color:#fff; }
+
+  /* Dashboard */
+  .dash{ display:grid; grid-template-columns:2fr 1fr; gap:16px; height:100%; overflow-y:auto; padding-bottom:12px; }
+  .dash-col{ display:flex; flex-direction:column; gap:14px; min-height:0; }
+  .dash-card{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:16px 18px; }
+  .dash-card h3{ margin:0 0 12px; font-size:.82rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; }
+  .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .kpi{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:14px; text-align:center; }
+  .kpi .num{ font-family:'IBM Plex Mono', monospace; font-size:1.6rem; font-weight:700; color:var(--graphite); }
+  .kpi .lbl{ font-size:.7rem; color:var(--ink-soft); margin-top:2px; }
+  .bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:.8rem; }
+  .bar-row .lbl{ width:170px; flex-shrink:0; color:var(--ink-soft); }
+  .bar-track{ flex:1; background:var(--paper); border-radius:8px; height:16px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:8px; }
+  .bar-row .val{ width:34px; text-align:right; font-family:'IBM Plex Mono', monospace; font-size:.75rem; color:var(--ink-soft); flex-shrink:0; }
   .toolbar .reset-btn{ background:#fff; color:var(--red); border-color:var(--red); font-weight:600; }
   .toolbar .reset-btn:hover{ background:var(--red); color:#fff; }
   .toolbar .pdf-btn{ background:#fff; color:var(--graphite); border-color:var(--graphite); font-weight:600; }
@@ -146,6 +166,9 @@
     .col{ break-inside:avoid; margin-bottom:16px; }
     .col-body{ overflow:visible; }
     .card{ break-inside:avoid; }
+    .dash{ display:block !important; height:auto; overflow:visible; }
+    .dash-col{ display:block; }
+    .dash-card{ break-inside:avoid; margin-bottom:14px; }
   }
 </style>
 </head>
@@ -163,6 +186,7 @@
 
 <main>
   <div class="board" id="board"></div>
+  <div class="dash" id="dash" style="display:none;"></div>
 </main>
 
 <div class="overlay" id="overlay">
@@ -281,6 +305,7 @@ function scoreClass(s){
 }
 
 let filter = "Todas";
+let view = "kanban";
 
 function renderToolbar(){
   const tb = document.getElementById("toolbar");
@@ -292,8 +317,24 @@ function renderToolbar(){
     b.onclick = () => { filter = cat; render(); };
     tb.appendChild(b);
   });
+
+  const toggle = document.createElement("div");
+  toggle.className = "view-toggle";
+  ["kanban","dashboard"].forEach(v=>{
+    const b = document.createElement("button");
+    b.textContent = v === "kanban" ? "Kanban" : "Dashboard";
+    if(v === view) b.classList.add("active");
+    b.onclick = () => { view = v; render(); };
+    toggle.appendChild(b);
+  });
+  tb.appendChild(toggle);
+
   const spacer = document.createElement("div");
   spacer.className = "spacer";
+  const csv = document.createElement("button");
+  csv.textContent = "Exportar Excel";
+  csv.className = "csv-btn";
+  csv.onclick = exportCSV;
   const pdf = document.createElement("button");
   pdf.textContent = "Exportar PDF";
   pdf.className = "pdf-btn";
@@ -302,15 +343,47 @@ function renderToolbar(){
   add.textContent = "+ Nuevo frente";
   add.className = "add-btn";
   add.onclick = () => openModal(null);
+  spacer.appendChild(csv);
   spacer.appendChild(pdf);
   spacer.appendChild(add);
   tb.appendChild(spacer);
 }
 
+function exportCSV(){
+  const items = data.filter(c => filter === "Todas" || c.cat === filter);
+  const cols = ["Categoría","Frente","Estado","Etapa de acción","Relevamiento de campo",
+    "Factib. humana","Factib. económica","Impacto económico","Score",
+    "¿Se pliega?","Estado de validación","Acción — Tipo","Acción — Detalle"];
+  const esc = (v) => `"${String(v??"").replace(/"/g,'""')}"`;
+  const rows = items.map(c => [
+    c.cat, c.frente, c.estado, c.etapaAccion, c.releva,
+    c.fh, c.fe, c.ie, (score(c)===null? "" : score(c).toFixed(1)),
+    c.adhesion, c.validacion, c.tipoAccion, c.detalle
+  ].map(esc).join(","));
+  const csv = "\uFEFF" + cols.map(esc).join(",") + "\n" + rows.join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `gestores-del-cambio_${filter.replace(/\s/g,"-")}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function render(){
   renderToolbar();
-  const board = document.getElementById("board");
-  board.innerHTML = "";
+  const boardEl = document.getElementById("board");
+  const dashEl = document.getElementById("dash");
+  if(view === "dashboard"){
+    boardEl.style.display = "none";
+    dashEl.style.display = "grid";
+    renderDashboard();
+    return;
+  }
+  boardEl.style.display = "grid";
+  dashEl.style.display = "none";
+
+  boardEl.innerHTML = "";
   ESTADOS.forEach(estado=>{
     const col = document.createElement("div");
     col.className = "col";
@@ -336,8 +409,75 @@ function render(){
     });
     col.appendChild(head);
     col.appendChild(body);
-    board.appendChild(col);
+    boardEl.appendChild(col);
   });
+}
+
+function barColor(pct){
+  if(pct < 50) return "var(--red)";
+  if(pct < 75) return "var(--yellow)";
+  return "var(--green)";
+}
+
+function renderDashboard(){
+  const items = data.filter(c => filter === "Todas" || c.cat === filter);
+  const dashEl = document.getElementById("dash");
+
+  const total = items.length;
+  const scored = items.map(score).filter(s => s !== null);
+  const avgScore = scored.length ? (scored.reduce((a,b)=>a+b,0)/scored.length) : null;
+  const validados = items.filter(c => c.validacion === "Validado").length;
+  const enAccion = items.filter(c => c.estado === "Acción").length;
+
+  const porCat = {};
+  Object.keys(CATS).forEach(k => porCat[k] = items.filter(c=>c.cat===k).length);
+  const porEstado = {};
+  ESTADOS.forEach(e => porEstado[e] = items.filter(c=>c.estado===e).length);
+  const porAdhesion = {};
+  ["Sí","No","A definir",""].forEach(a => porAdhesion[a||"Sin definir"] = items.filter(c=>(c.adhesion||"") === a).length);
+  const porValidacion = {};
+  ["Pendiente","En revisión","Validado","Ajustar","Frenado",""].forEach(v => porValidacion[v||"Sin evaluar"] = items.filter(c=>(c.validacion||"")===v).length);
+
+  const catColor = {"Hacia adelante":"var(--adelante)","Operaciones internas":"var(--interno)","Hacia atrás (Central)":"var(--atras)"};
+
+  function bars(obj, colorFn){
+    const max = Math.max(1, ...Object.values(obj));
+    return Object.entries(obj).map(([k,v])=>`
+      <div class="bar-row">
+        <span class="lbl">${k}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${(v/max*100)}%; background:${colorFn(k,v)}"></div></div>
+        <span class="val">${v}</span>
+      </div>`).join("");
+  }
+
+  dashEl.innerHTML = `
+    <div class="dash-col">
+      <div class="kpis">
+        <div class="kpi"><div class="num">${total}</div><div class="lbl">Frentes ${filter==="Todas"?"totales":"en "+filter}</div></div>
+        <div class="kpi"><div class="num">${avgScore===null?"s/d":avgScore.toFixed(1)}</div><div class="lbl">Score promedio</div></div>
+        <div class="kpi"><div class="num">${validados}</div><div class="lbl">Validados</div></div>
+        <div class="kpi"><div class="num">${enAccion}</div><div class="lbl">En acción</div></div>
+      </div>
+      <div class="dash-card">
+        <h3>Frentes por categoría</h3>
+        ${bars(porCat, (k)=>catColor[k])}
+      </div>
+      <div class="dash-card">
+        <h3>Frentes por estado (Kanban)</h3>
+        ${bars(porEstado, ()=>"var(--amber)")}
+      </div>
+    </div>
+    <div class="dash-col">
+      <div class="dash-card">
+        <h3>Gestores del Cambio — ¿se pliega?</h3>
+        ${bars(porAdhesion, (k)=> k==="Sí"?"var(--green)": k==="No"?"var(--red)": "var(--line)")}
+      </div>
+      <div class="dash-card">
+        <h3>Estado de validación</h3>
+        ${bars(porValidacion, (k)=> k==="Validado"?"var(--green)": k==="Frenado"?"var(--red)": k==="En revisión"||k==="Ajustar"?"var(--yellow)":"var(--line)")}
+      </div>
+    </div>
+  `;
 }
 
 function openModal(id){
