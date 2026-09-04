@@ -124,6 +124,19 @@
   .score-green{ background:var(--green); }
   .score-none{ background:var(--line); color:var(--ink-soft); }
   .card .etapa{ font-size:.64rem; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; }
+  .suc-chips{ display:flex; gap:3px; }
+  .suc-chip{
+    width:16px; height:16px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace; font-size:.6rem; font-weight:600; color:#fff;
+  }
+  .chip-si{ background:var(--green); }
+  .chip-no{ background:var(--red); }
+  .chip-def{ background:var(--yellow); color:var(--graphite); }
+  .sucursales-grid{ display:flex; flex-direction:column; gap:8px; }
+  .suc-row{ display:grid; grid-template-columns:90px 1fr; align-items:center; gap:10px; }
+  .suc-row .suc-name{ font-size:.78rem; color:var(--ink-soft); font-weight:500; }
+  .suc-row.suc-futura .suc-name{ font-style:italic; }
+  .suc-row.suc-futura select{ background:#F4F5F1; }
 
   .overlay{
     position:fixed; inset:0; background:rgba(27,32,39,.55); display:none;
@@ -206,6 +219,24 @@ const TIPOS_ACCION = ["Correctiva (ajuste)","Inductiva","Fundacional"];
 const ADHESION = ["Sí","No","A definir"];
 const VALIDACION = ["Pendiente","En revisión","Validado","Ajustar","Frenado"];
 
+// Sucursales previstas para el rollout de "Gestores del Cambio".
+// Posadas es el nodo de arranque; Obera es el primer nodo que se liga (sin gerente propio, terreno directo).
+// Virasoro y Chaco quedan previstas en el modelo pero todavía sin datos cargados.
+const SUCURSALES = ["Posadas","Obera","Virasoro","Chaco"];
+const SUCURSALES_ACTIVAS = ["Posadas","Obera"];
+
+function normalizeAdhesion(a){
+  const obj = {};
+  SUCURSALES.forEach(s => obj[s] = "");
+  if(a && typeof a === "object"){
+    SUCURSALES.forEach(s => { if(a[s]) obj[s] = a[s]; });
+  } else if(a){
+    // formato viejo: un único valor global -> lo asumimos referido a Posadas
+    obj["Posadas"] = a;
+  }
+  return obj;
+}
+
 let data = [
   card("Hacia adelante","Canales directos (Instaladores + Ferreterías/Blue)","Acción","Inducción",
     "Hablé con Ventas: no hay BD de ferreterías, se maneja de memoria. 2 instaladores activos identificados de palabra, sin registro.",
@@ -250,7 +281,7 @@ let data = [
 ];
 
 function card(cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle){
-  return {id: crypto.randomUUID(), cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle};
+  return {id: crypto.randomUUID(), cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion: normalizeAdhesion(adhesion), validacion, tipoAccion, detalle};
 }
 
 const seedData = data; // guarda la carga inicial de ejemplo, para el primer arranque
@@ -267,7 +298,7 @@ async function loadBoard(){
     if(!res.ok) throw new Error("no api");
     const remote = await res.json();
     if(remote && Array.isArray(remote) && remote.length){
-      data = remote;
+      data = remote.map(c => ({...c, adhesion: normalizeAdhesion(c.adhesion)}));
     } else {
       // primera vez: no hay nada guardado todavía, sembramos con la data de ejemplo
       await syncBoard(false);
@@ -354,11 +385,13 @@ function exportExcel(){
   const items = data.filter(c => filter === "Todas" || c.cat === filter);
   const cols = ["Categoría","Frente","Estado","Etapa de acción","Relevamiento de campo",
     "Factib. humana","Factib. económica","Impacto económico","Score",
-    "¿Se pliega?","Estado de validación","Acción — Tipo","Acción — Detalle"];
+    ...SUCURSALES.map(s => `¿Se pliega? — ${s}`),
+    "Estado de validación","Acción — Tipo","Acción — Detalle"];
   const rows = items.map(c => [
     c.cat, c.frente, c.estado, c.etapaAccion, c.releva,
     c.fh, c.fe, c.ie, (score(c)===null? "" : Number(score(c).toFixed(1))),
-    c.adhesion, c.validacion, c.tipoAccion, c.detalle
+    ...SUCURSALES.map(s => c.adhesion[s] || ""),
+    c.validacion, c.tipoAccion, c.detalle
   ]);
 
   const ws = XLSX.utils.aoa_to_sheet([cols, ...rows]);
@@ -367,7 +400,8 @@ function exportExcel(){
   ws["!cols"] = [
     {wch:18},{wch:34},{wch:16},{wch:16},{wch:45},
     {wch:10},{wch:10},{wch:10},{wch:8},
-    {wch:10},{wch:16},{wch:14},{wch:45}
+    ...SUCURSALES.map(()=>({wch:12})),
+    {wch:16},{wch:14},{wch:45}
   ];
   // Congelar encabezado
   ws["!freeze"] = {xSplit:0, ySplit:1};
@@ -413,6 +447,7 @@ function render(){
         <h3>${c.frente}</h3>
         <div class="meta">
           <span class="etapa">${estado==="Acción" && c.etapaAccion ? c.etapaAccion : (c.tipoAccion || "—")}</span>
+          <span class="suc-chips">${adhesionChips(c)}</span>
           <span class="score ${scoreClass(s)}">${s===null? "s/d" : s.toFixed(1)}</span>
         </div>`;
       el.onclick = () => openModal(c.id);
@@ -422,6 +457,15 @@ function render(){
     col.appendChild(body);
     boardEl.appendChild(col);
   });
+}
+
+function adhesionChips(c){
+  return SUCURSALES_ACTIVAS.map(s=>{
+    const v = c.adhesion[s];
+    if(!v) return "";
+    const cls = v==="Sí" ? "chip-si" : v==="No" ? "chip-no" : "chip-def";
+    return `<span class="suc-chip ${cls}" title="${s}: ${v}">${s[0]}</span>`;
+  }).join("");
 }
 
 function barColor(pct){
@@ -444,8 +488,8 @@ function renderDashboard(){
   Object.keys(CATS).forEach(k => porCat[k] = items.filter(c=>c.cat===k).length);
   const porEstado = {};
   ESTADOS.forEach(e => porEstado[e] = items.filter(c=>c.estado===e).length);
-  const porAdhesion = {};
-  ["Sí","No","A definir",""].forEach(a => porAdhesion[a||"Sin definir"] = items.filter(c=>(c.adhesion||"") === a).length);
+  const porSucursal = {};
+  SUCURSALES_ACTIVAS.forEach(s => porSucursal[s] = items.filter(c => c.adhesion[s] === "Sí").length);
   const porValidacion = {};
   ["Pendiente","En revisión","Validado","Ajustar","Frenado",""].forEach(v => porValidacion[v||"Sin evaluar"] = items.filter(c=>(c.validacion||"")===v).length);
 
@@ -480,8 +524,8 @@ function renderDashboard(){
     </div>
     <div class="dash-col">
       <div class="dash-card">
-        <h3>Gestores del Cambio — ¿se pliega?</h3>
-        ${bars(porAdhesion, (k)=> k==="Sí"?"var(--green)": k==="No"?"var(--red)": "var(--line)")}
+        <h3>Gestores del Cambio — frentes con adhesión "Sí" por sucursal</h3>
+        ${bars(porSucursal, ()=>"var(--green)")}
       </div>
       <div class="dash-card">
         <h3>Estado de validación</h3>
@@ -532,15 +576,20 @@ function openModal(id){
         <div><label style="font-weight:400;">Impacto económico</label><input id="f-ie" type="number" min="0" max="10" value="${c.ie}"></div>
       </div>
     </div>
-    <div class="field row2">
-      <div>
-        <label>Gestores del Cambio — ¿se pliega?</label>
-        <select id="f-adh"><option value="">—</option>${ADHESION.map(a=>`<option ${a===c.adhesion?'selected':''}>${a}</option>`).join('')}</select>
+    <div class="field">
+      <label>Gestores del Cambio — ¿quién se pliega?</label>
+      <div class="sucursales-grid">
+        ${SUCURSALES.map(s=>`
+          <div class="suc-row ${SUCURSALES_ACTIVAS.includes(s)?'':'suc-futura'}">
+            <span class="suc-name">${s}${SUCURSALES_ACTIVAS.includes(s)?'':' (próx. etapa)'}</span>
+            <select id="f-adh-${s}"><option value="">—</option>${ADHESION.map(a=>`<option ${a===c.adhesion[s]?'selected':''}>${a}</option>`).join('')}</select>
+          </div>
+        `).join('')}
       </div>
-      <div>
-        <label>Estado de validación</label>
-        <select id="f-val"><option value="">—</option>${VALIDACION.map(v=>`<option ${v===c.validacion?'selected':''}>${v}</option>`).join('')}</select>
-      </div>
+    </div>
+    <div class="field">
+      <label>Estado de validación</label>
+      <select id="f-val"><option value="">—</option>${VALIDACION.map(v=>`<option ${v===c.validacion?'selected':''}>${v}</option>`).join('')}</select>
     </div>
     <div class="field">
       <label>Acción a motorizar — Tipo</label>
@@ -576,6 +625,8 @@ function closeModal(){ document.getElementById("overlay").classList.remove("show
 
 function saveModal(id){
   const estado = document.getElementById("f-estado").value;
+  const adhesion = {};
+  SUCURSALES.forEach(s => adhesion[s] = document.getElementById(`f-adh-${s}`).value);
   const vals = {
     frente: document.getElementById("f-frente").value.trim(),
     cat: document.getElementById("f-cat").value,
@@ -585,7 +636,7 @@ function saveModal(id){
     fh: document.getElementById("f-fh").value,
     fe: document.getElementById("f-fe").value,
     ie: document.getElementById("f-ie").value,
-    adhesion: document.getElementById("f-adh").value,
+    adhesion: adhesion,
     validacion: document.getElementById("f-val").value,
     tipoAccion: document.getElementById("f-tipo").value,
     detalle: document.getElementById("f-detalle").value,
