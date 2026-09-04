@@ -171,6 +171,7 @@
     .dash-card{ break-inside:avoid; margin-bottom:14px; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -334,7 +335,7 @@ function renderToolbar(){
   const csv = document.createElement("button");
   csv.textContent = "Exportar Excel";
   csv.className = "csv-btn";
-  csv.onclick = exportCSV;
+  csv.onclick = exportExcel;
   const pdf = document.createElement("button");
   pdf.textContent = "Exportar PDF";
   pdf.className = "pdf-btn";
@@ -349,25 +350,35 @@ function renderToolbar(){
   tb.appendChild(spacer);
 }
 
-function exportCSV(){
+function exportExcel(){
   const items = data.filter(c => filter === "Todas" || c.cat === filter);
   const cols = ["Categoría","Frente","Estado","Etapa de acción","Relevamiento de campo",
     "Factib. humana","Factib. económica","Impacto económico","Score",
     "¿Se pliega?","Estado de validación","Acción — Tipo","Acción — Detalle"];
-  const esc = (v) => `"${String(v??"").replace(/"/g,'""')}"`;
   const rows = items.map(c => [
     c.cat, c.frente, c.estado, c.etapaAccion, c.releva,
-    c.fh, c.fe, c.ie, (score(c)===null? "" : score(c).toFixed(1)),
+    c.fh, c.fe, c.ie, (score(c)===null? "" : Number(score(c).toFixed(1))),
     c.adhesion, c.validacion, c.tipoAccion, c.detalle
-  ].map(esc).join(","));
-  const csv = "\uFEFF" + cols.map(esc).join(",") + "\n" + rows.join("\n");
-  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `gestores-del-cambio_${filter.replace(/\s/g,"-")}_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  ]);
+
+  const ws = XLSX.utils.aoa_to_sheet([cols, ...rows]);
+
+  // Anchos de columna razonables para no tener que ajustar a mano
+  ws["!cols"] = [
+    {wch:18},{wch:34},{wch:16},{wch:16},{wch:45},
+    {wch:10},{wch:10},{wch:10},{wch:8},
+    {wch:10},{wch:16},{wch:14},{wch:45}
+  ];
+  // Congelar encabezado
+  ws["!freeze"] = {xSplit:0, ySplit:1};
+
+  // Autofiltro sobre todo el rango
+  const range = XLSX.utils.decode_range(ws["!ref"]);
+  ws["!autofilter"] = {ref: XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:range.e.r, c:range.e.c}})};
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Gestores del Cambio");
+  XLSX.writeFile(wb, `gestores-del-cambio_${filter.replace(/\s/g,"-")}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 function render(){
