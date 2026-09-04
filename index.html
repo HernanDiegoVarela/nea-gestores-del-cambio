@@ -220,10 +220,9 @@ const ADHESION = ["Sí","No","A definir"];
 const VALIDACION = ["Pendiente","En revisión","Validado","Ajustar","Frenado"];
 
 // Sucursales previstas para el rollout de "Gestores del Cambio".
-// Posadas es el nodo de arranque; Obera es el primer nodo que se liga (sin gerente propio, terreno directo).
-// Virasoro y Chaco quedan previstas en el modelo pero todavía sin datos cargados.
+// Las 4 quedan activas en el modelo desde el arranque, así no hay que tocar código cuando se sume data de Virasoro/Chaco.
 const SUCURSALES = ["Posadas","Obera","Virasoro","Chaco"];
-const SUCURSALES_ACTIVAS = ["Posadas","Obera"];
+const SUCURSALES_ACTIVAS = SUCURSALES;
 
 function normalizeAdhesion(a){
   const obj = {};
