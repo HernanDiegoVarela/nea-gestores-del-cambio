@@ -81,6 +81,39 @@
   .toolbar .pdf-btn{ background:#fff; color:var(--graphite); border-color:var(--graphite); font-weight:600; }
   .toolbar .pdf-btn:hover{ background:var(--graphite); color:#fff; }
 
+  /* Gantt */
+  .gantt{ height:100%; overflow:auto; }
+  .gantt-scroll{ min-width:900px; }
+  .gantt-months{ display:flex; position:sticky; top:0; background:var(--paper); z-index:2; border-bottom:2px solid var(--line); }
+  .gantt-month{ flex-shrink:0; font-size:.68rem; color:var(--ink-soft); font-weight:600; padding:4px 0 6px 6px; border-left:1px solid var(--line); }
+  .gantt-body{ position:relative; }
+  .gantt-row{ display:flex; align-items:center; height:38px; border-bottom:1px solid var(--line); }
+  .gantt-row-label{
+    position:sticky; left:0; width:260px; flex-shrink:0; background:var(--paper);
+    font-size:.76rem; padding-right:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    display:flex; align-items:center; gap:6px; z-index:1;
+  }
+  .gantt-track{ position:relative; flex:1; height:100%; }
+  .gantt-bar{
+    position:absolute; top:9px; height:20px; border-radius:3px; background:var(--adelante);
+    font-size:.62rem; color:#fff; display:flex; align-items:center; padding:0 6px; white-space:nowrap; overflow:hidden;
+  }
+  .gantt-hito{
+    position:absolute; top:6px; width:18px; height:18px; background:var(--amber);
+    border:2px solid var(--graphite); transform:translateX(-9px) rotate(45deg);
+  }
+  .gantt-hito-label{
+    position:absolute; top:2px; font-size:.62rem; font-weight:600; color:var(--graphite);
+    white-space:nowrap; transform:translateX(14px);
+  }
+  .gantt-today{ position:absolute; top:0; bottom:0; width:2px; background:var(--red); z-index:1; }
+  .gantt-today-lbl{ position:absolute; top:-16px; font-size:.62rem; color:var(--red); font-weight:600; transform:translateX(-50%); }
+  .gantt-empty{ padding:40px 20px; color:var(--ink-soft); font-size:.85rem; text-align:center; }
+  .gantt-pending{ padding:14px 4px 4px; }
+  .gantt-pending h4{ font-size:.78rem; color:var(--ink-soft); margin:0 0 8px; text-transform:uppercase; letter-spacing:.03em; }
+  .gantt-pending ul{ margin:0; padding-left:18px; font-size:.8rem; color:var(--ink); }
+  .gantt-pending li{ margin-bottom:4px; }
+
   main{ flex:1; min-height:0; padding:14px 28px 16px; }
 
   .board{
@@ -124,6 +157,21 @@
   .score-green{ background:var(--green); }
   .score-none{ background:var(--line); color:var(--ink-soft); }
   .card .etapa{ font-size:.64rem; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; }
+  .card .fechas{ font-size:.64rem; color:var(--ink-soft); margin-top:4px; font-family:'IBM Plex Mono', monospace; }
+  .hz-badge{
+    display:inline-block; font-size:.62rem; font-weight:700; padding:1px 7px;
+    border-radius:10px; margin-bottom:5px; margin-left:4px; font-family:'IBM Plex Mono', monospace;
+  }
+  .hz-urgente{ background:var(--red); color:#fff; }
+  .hz-h1{ background:var(--amber); color:var(--graphite); }
+  .hz-h2{ background:var(--yellow); color:var(--graphite); }
+  .hz-h3{ background:var(--interno-bg); color:var(--interno); }
+  .hz-none{ background:var(--line); color:var(--ink-soft); }
+  .hz-pending{ background:#fff; color:var(--red); border:1px dashed var(--red); }
+  .hito-badge{
+    display:inline-block; font-size:.62rem; font-weight:700; padding:1px 7px;
+    border-radius:10px; margin-bottom:5px; margin-left:4px; background:var(--graphite); color:var(--amber);
+  }
   .suc-chips{ display:flex; gap:3px; }
   .suc-chip{
     width:16px; height:16px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
@@ -201,6 +249,7 @@
 <main>
   <div class="board" id="board"></div>
   <div class="dash" id="dash" style="display:none;"></div>
+  <div class="gantt" id="gantt" style="display:none;"></div>
 </main>
 
 <div class="overlay" id="overlay">
@@ -219,6 +268,35 @@ const TIPOS_ACCION = ["Correctiva (ajuste)","Inductiva","Fundacional"];
 const ADHESION = ["Sí","No","A definir"];
 const VALIDACION = ["Pendiente","En revisión","Validado","Ajustar","Frenado"];
 
+// Horizonte ORIGINAL del Tamiz (Rafael + Hernán) — queda como referencia histórica en cada
+// tarjeta, ya no se usa para ordenar el kanban (ver HORIZONTE_CALC más abajo).
+const HORIZONTES_TAMIZ = ["Resolver rápido","H1","H2","H3"];
+const HORIZONTE_TAMIZ_INFO = {
+  "Resolver rápido": {ventana:"Ya"},
+  "H1": {ventana:"0-3 meses"},
+  "H2": {ventana:"3-6 meses"},
+  "H3": {ventana:"6-18 meses"},
+  "": {ventana:"Sin definir"}
+};
+
+// Horizonte ACTUAL: se calcula solo, a partir de los días que faltan (desde HOY) hasta la
+// Fecha de cierre de cada frente. Reemplaza al horizonte elegido a mano — así el kanban
+// se reordena solo a medida que se acerca un vencimiento, sin que nadie tenga que tocarlo.
+// Sin fecha de cierre cargada, el frente queda marcado "(Definir Facundo)".
+function horizonteCalc(c){
+  if(!c.fechaCierre) return {h:"", order:99, cls:"hz-pending", label:"(Definir Facundo)"};
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const cierre = new Date(c.fechaCierre + "T00:00:00");
+  const dias = Math.round((cierre - hoy) / 86400000);
+  let h, cls;
+  if(dias <= 30){ h = "H1"; cls = "hz-urgente"; }
+  else if(dias <= 90){ h = "H2"; cls = "hz-h1"; }
+  else { h = "H3"; cls = "hz-h2"; }
+  const diasTxt = dias < 0 ? `vencido hace ${Math.abs(dias)} d` : `en ${dias} d`;
+  const order = h === "H1" ? 0 : h === "H2" ? 1 : 2;
+  return {h, order, cls, label:`${h} · ${diasTxt}`};
+}
+
 // Sucursales previstas para el rollout de "Gestores del Cambio".
 // Las 4 quedan activas en el modelo desde el arranque, así no hay que tocar código cuando se sume data de Virasoro/Chaco.
 const SUCURSALES = ["Posadas","Obera","Virasoro","Chaco"];
@@ -236,52 +314,67 @@ function normalizeAdhesion(a){
   return obj;
 }
 
+function card(cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle, horizonteTamiz, fechaInicio, fechaCierre, esHito){
+  return {id: crypto.randomUUID(), cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion: normalizeAdhesion(adhesion), validacion, tipoAccion, detalle, horizonteTamiz: horizonteTamiz || "", fechaInicio: fechaInicio || "", fechaCierre: fechaCierre || "", esHito: !!esHito};
+}
+
+// Atajo para los frentes que todavía no tienen relevamiento de campo cargado:
+// solo cat, frente, estado y (opcionalmente) el horizonte original del Tamiz.
+function cardH(cat, frente, estado, horizonteTamiz){
+  return card(cat, frente, estado, "", "", "", "", "", "", "", "", "", horizonteTamiz || "", "", "", false);
+}
+
+// Horizonte pre-cargado tal cual quedó definido en el Tamiz (Rafael + Hernán) y en el
+// Anexo de Cruce presentado a Facundo. Donde el frente de la app es fusión o no tiene
+// equivalente 1:1 en los 19 frentes del Tamiz, se deja "" (Sin definir) para no inventar un dato.
 let data = [
   card("Hacia adelante","Canales directos (Instaladores + Ferreterías/Blue)","Acción","Inducción",
     "Hablé con Ventas: no hay BD de ferreterías, se maneja de memoria. 2 instaladores activos identificados de palabra, sin registro.",
-    8,9,9,"Sí","Validado","Inductiva","Armar BD del canal y fijar objetivo comercial con Facundo esta semana."),
+    8,9,9,"Sí","Validado","Inductiva","Armar BD del canal y fijar objetivo comercial con Facundo esta semana.",
+    "Resolver rápido","",""),
   card("Hacia adelante","CRM — selección e implementación","Evaluación","",
     "Hoy nadie usa una herramienta de seguimiento comercial. Facundo trae experiencia de CRM previa.",
-    7,6,9,"","","",""),
-  card("Hacia adelante","Touch points / Customer journey","Por relevar","","", "","","","","",""),
-  card("Hacia adelante","UX en el punto de venta","Por relevar","","", "","","","","",""),
-  card("Hacia adelante","TOFU — captación y generación de leads","Por relevar","","", "","","","","",""),
+    7,6,9,"","","","","","",""),
+  cardH("Hacia adelante","Touch points / Customer journey","Por relevar","H1"),
+  cardH("Hacia adelante","UX en el punto de venta","Por relevar","H1"),
+  cardH("Hacia adelante","TOFU — captación y generación de leads","Por relevar",""),
   card("Hacia adelante","Base de clientes — ABM y tipificación","Relevamiento de campo","",
     "Base desactualizada según 6 de 8 vendedores; 5 de 8 dicen que actualizarla no es su función.",
-    "","","","","","",""),
-  card("Hacia adelante","Productividad y eficacia de vendedores","Por relevar","","", "","","","","",""),
-  card("Hacia adelante","Formación de equipos de atención al cliente","Por relevar","","", "","","","","",""),
-  card("Hacia adelante","Medios de mayor consulta e impacto","Por relevar","","", "","","","","",""),
+    "","","","","","","",
+    "Resolver rápido","",""),
+  cardH("Hacia adelante","Productividad y eficacia de vendedores","Por relevar","Resolver rápido"),
+  cardH("Hacia adelante","Formación de equipos de atención al cliente","Por relevar","Resolver rápido"),
+  cardH("Hacia adelante","Medios de mayor consulta e impacto","Por relevar","H3"),
 
   card("Operaciones internas","Stock — Pareto 80/20 general","Evaluación","",
     "Depósito confirma: reposición depende del criterio de una persona, no usan PEPS/UEPS ni ABC/Pareto hoy.",
-    6,8,8,"","Pendiente","",""),
-  card("Operaciones internas","Pareto de artículos (mostrador vs. corporativo)","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Clientes 80/20 (Pareto de clientes)","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Segmentos — similitudes y homogeneización","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Reposición (matriz de Kraljic)","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Contribución marginal vs. rotación (DuPont)","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Capacidad operativa por hora","Por relevar","","", "","","","","",""),
+    6,8,8,"","Pendiente","","",
+    "","",""),
+  cardH("Operaciones internas","Pareto de artículos (mostrador vs. corporativo)","Por relevar","H2"),
+  cardH("Operaciones internas","Clientes 80/20 (Pareto de clientes)","Por relevar",""),
+  cardH("Operaciones internas","Segmentos — similitudes y homogeneización","Por relevar",""),
+  cardH("Operaciones internas","Reposición (matriz de Kraljic)","Por relevar","H2"),
+  cardH("Operaciones internas","Contribución marginal vs. rotación (DuPont)","Por relevar","H2"),
+  cardH("Operaciones internas","Capacidad operativa por hora","Por relevar","H2"),
   card("Operaciones internas","Desviación de stock: Tango vs. físico","Relevamiento de campo","",
     "Depósito dice confiar 100% en el stock del sistema, pero 7 de 11 en la sucursal nombran falta de stock como lo que más falla.",
-    "","","","","","",""),
-  card("Operaciones internas","Depuración y organización de stock","Por relevar","","", "","","","","",""),
+    "","","","","","","",
+    "Resolver rápido","",""),
+  cardH("Operaciones internas","Depuración y organización de stock","Por relevar","Resolver rápido"),
   card("Operaciones internas","Costos actuales vs. histórico","Evaluación","",
     "Sin cultura de reportes instalada hoy en el área.",
-    7,7,8,"","Pendiente","",""),
-  card("Operaciones internas","Cobranzas y cuentas corrientes","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Habilitaciones, HyS, seguros","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Legajos y antigüedad","Por relevar","","", "","","","","",""),
+    7,7,8,"","Pendiente","","",
+    "Resolver rápido","",""),
+  cardH("Operaciones internas","Cobranzas y cuentas corrientes","Por relevar","Resolver rápido"),
+  cardH("Operaciones internas","Habilitaciones, HyS, seguros","Por relevar","H2"),
+  cardH("Operaciones internas","Legajos y antigüedad","Por relevar","H3"),
 
   card("Hacia atrás (Central)","Protocolo de respuesta (interno + hacia Central)","Acción","Aprendizaje piloto",
     "100% de la sucursal califica el acompañamiento de Central como parcial.",
-    7,8,6,"Sí","En revisión","Correctiva (ajuste)","Definir con Central quién participa, cuándo y cómo antes de instalarlo como norma."),
-  card("Hacia atrás (Central)","Agenda de trabajo con Central","Por relevar","","", "","","","","",""),
+    7,8,6,"Sí","En revisión","Correctiva (ajuste)","Definir con Central quién participa, cuándo y cómo antes de instalarlo como norma.",
+    "Resolver rápido","",""),
+  cardH("Hacia atrás (Central)","Agenda de trabajo con Central","Por relevar","H2"),
 ];
-
-function card(cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle){
-  return {id: crypto.randomUUID(), cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion: normalizeAdhesion(adhesion), validacion, tipoAccion, detalle};
-}
 
 const seedData = data; // guarda la carga inicial de ejemplo, para el primer arranque
 
@@ -297,7 +390,7 @@ async function loadBoard(){
     if(!res.ok) throw new Error("no api");
     const remote = await res.json();
     if(remote && Array.isArray(remote) && remote.length){
-      data = remote.map(c => ({...c, adhesion: normalizeAdhesion(c.adhesion)}));
+      data = remote.map(c => ({...c, adhesion: normalizeAdhesion(c.adhesion), horizonteTamiz: c.horizonteTamiz || c.horizonte || "", fechaInicio: c.fechaInicio || "", fechaCierre: c.fechaCierre || "", esHito: !!c.esHito}));
     } else {
       // primera vez: no hay nada guardado todavía, sembramos con la data de ejemplo
       await syncBoard(false);
@@ -351,9 +444,9 @@ function renderToolbar(){
 
   const toggle = document.createElement("div");
   toggle.className = "view-toggle";
-  ["kanban","dashboard"].forEach(v=>{
+  ["kanban","gantt","dashboard"].forEach(v=>{
     const b = document.createElement("button");
-    b.textContent = v === "kanban" ? "Kanban" : "Dashboard";
+    b.textContent = v === "kanban" ? "Kanban" : v === "gantt" ? "Gantt" : "Dashboard";
     if(v === view) b.classList.add("active");
     b.onclick = () => { view = v; render(); };
     toggle.appendChild(b);
@@ -382,12 +475,12 @@ function renderToolbar(){
 
 function exportExcel(){
   const items = data.filter(c => filter === "Todas" || c.cat === filter);
-  const cols = ["Categoría","Frente","Estado","Etapa de acción","Relevamiento de campo",
+  const cols = ["Categoría","Horizonte actual (calculado)","Objetivo/Hito","Horizonte Tamiz (referencia)","Fecha inicio","Fecha cierre","Frente","Estado","Etapa de acción","Relevamiento de campo",
     "Factib. humana","Factib. económica","Impacto económico","Score",
     ...SUCURSALES.map(s => `¿Se pliega? — ${s}`),
     "Estado de validación","Acción — Tipo","Acción — Detalle"];
-  const rows = items.map(c => [
-    c.cat, c.frente, c.estado, c.etapaAccion, c.releva,
+  const rows = items.sort(sortByJerarquia).map(c => [
+    c.cat, horizonteCalc(c).label, c.esHito ? "Sí" : "No", hzTamizLabel(c.horizonteTamiz), c.fechaInicio || "", c.fechaCierre || "", c.frente, c.estado, c.etapaAccion, c.releva,
     c.fh, c.fe, c.ie, (score(c)===null? "" : Number(score(c).toFixed(1))),
     ...SUCURSALES.map(s => c.adhesion[s] || ""),
     c.validacion, c.tipoAccion, c.detalle
@@ -397,7 +490,7 @@ function exportExcel(){
 
   // Anchos de columna razonables para no tener que ajustar a mano
   ws["!cols"] = [
-    {wch:18},{wch:34},{wch:16},{wch:16},{wch:45},
+    {wch:18},{wch:20},{wch:12},{wch:20},{wch:12},{wch:12},{wch:34},{wch:16},{wch:16},{wch:45},
     {wch:10},{wch:10},{wch:10},{wch:8},
     ...SUCURSALES.map(()=>({wch:12})),
     {wch:16},{wch:14},{wch:45}
@@ -418,20 +511,28 @@ function render(){
   renderToolbar();
   const boardEl = document.getElementById("board");
   const dashEl = document.getElementById("dash");
+  const ganttEl = document.getElementById("gantt");
+  boardEl.style.display = "none";
+  dashEl.style.display = "none";
+  ganttEl.style.display = "none";
   if(view === "dashboard"){
-    boardEl.style.display = "none";
     dashEl.style.display = "grid";
     renderDashboard();
     return;
   }
+  if(view === "gantt"){
+    ganttEl.style.display = "block";
+    renderGantt();
+    return;
+  }
   boardEl.style.display = "grid";
-  dashEl.style.display = "none";
 
   boardEl.innerHTML = "";
   ESTADOS.forEach(estado=>{
     const col = document.createElement("div");
     col.className = "col";
-    const items = data.filter(c => c.estado === estado && (filter === "Todas" || c.cat === filter));
+    const items = data.filter(c => c.estado === estado && (filter === "Todas" || c.cat === filter))
+      .sort(sortByJerarquia);
     const head = document.createElement("div");
     head.className = "col-head";
     head.innerHTML = `<span>${estado}</span><span class="count">${items.length}</span>`;
@@ -439,16 +540,20 @@ function render(){
     body.className = "col-body";
     items.forEach(c=>{
       const s = score(c);
+      const hz = horizonteCalc(c);
       const el = document.createElement("div");
       el.className = "card";
       el.innerHTML = `
         <span class="cat-tag ${CATS[c.cat].cls}">${CATS[c.cat].short}</span>
+        <span class="hz-badge ${hz.cls}" title="Calculado desde la Fecha de cierre. Tamiz original: ${hzTamizLabel(c.horizonteTamiz)}">${hz.label}</span>
+        ${c.esHito ? `<span class="hito-badge" title="Objetivo / Hito">◆ Hito</span>` : ""}
         <h3>${c.frente}</h3>
         <div class="meta">
           <span class="etapa">${estado==="Acción" && c.etapaAccion ? c.etapaAccion : (c.tipoAccion || "—")}</span>
           <span class="suc-chips">${adhesionChips(c)}</span>
           <span class="score ${scoreClass(s)}">${s===null? "s/d" : s.toFixed(1)}</span>
-        </div>`;
+        </div>
+        ${(c.fechaInicio || c.fechaCierre) ? `<div class="fechas">${c.fechaInicio || "s/i"} → ${c.fechaCierre || "s/c"}</div>` : ""}`;
       el.onclick = () => openModal(c.id);
       body.appendChild(el);
     });
@@ -456,6 +561,24 @@ function render(){
     col.appendChild(body);
     boardEl.appendChild(col);
   });
+}
+
+// Etiqueta del horizonte ORIGINAL del Tamiz — solo referencia histórica.
+function hzTamizLabel(horizonteTamiz){
+  const hz = HORIZONTE_TAMIZ_INFO[horizonteTamiz || ""];
+  if(!horizonteTamiz) return "Sin definir";
+  return `${horizonteTamiz} · ${hz.ventana}`;
+}
+
+function sortByJerarquia(a, b){
+  const oa = horizonteCalc(a).order;
+  const ob = horizonteCalc(b).order;
+  if(oa !== ob) return oa - ob;
+  const sa = score(a), sb = score(b);
+  if(sa === null && sb === null) return 0;
+  if(sa === null) return 1;
+  if(sb === null) return -1;
+  return sb - sa;
 }
 
 function adhesionChips(c){
@@ -485,6 +608,8 @@ function renderDashboard(){
 
   const porCat = {};
   Object.keys(CATS).forEach(k => porCat[k] = items.filter(c=>c.cat===k).length);
+  const porHorizonte = {"H1":0, "H2":0, "H3":0, "(Definir Facundo)":0};
+  items.forEach(c => { const h = horizonteCalc(c).h || "(Definir Facundo)"; porHorizonte[h]++; });
   const porEstado = {};
   ESTADOS.forEach(e => porEstado[e] = items.filter(c=>c.estado===e).length);
   const porSucursal = {};
@@ -513,6 +638,10 @@ function renderDashboard(){
         <div class="kpi"><div class="num">${enAccion}</div><div class="lbl">En acción</div></div>
       </div>
       <div class="dash-card">
+        <h3>Frentes por horizonte (calculado por fecha de cierre)</h3>
+        ${bars(porHorizonte, (k)=> k==="H1"?"var(--red)": k==="H2"?"var(--amber)": k==="H3"?"var(--interno)":"var(--line)")}
+      </div>
+      <div class="dash-card">
         <h3>Frentes por categoría</h3>
         ${bars(porCat, (k)=>catColor[k])}
       </div>
@@ -532,6 +661,107 @@ function renderDashboard(){
       </div>
     </div>
   `;
+}
+
+function parseISO(d){ return new Date(d + "T00:00:00"); }
+function fmtMonthShort(d){ return d.toLocaleDateString("es-AR", {month:"short", year:"2-digit"}).replace(".",""); }
+function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+
+function renderGantt(){
+  const ganttEl = document.getElementById("gantt");
+  const items = data.filter(c => filter === "Todas" || c.cat === filter);
+
+  // Un frente entra al Gantt si tiene al menos una fecha cargada (inicio y/o cierre).
+  const conFecha = items.filter(c => c.fechaInicio || c.fechaCierre);
+  const sinFecha = items.filter(c => !c.fechaInicio && !c.fechaCierre);
+
+  if(conFecha.length === 0){
+    ganttEl.innerHTML = `
+      <div class="gantt-empty">Todavía no hay ninguna Fecha de inicio o de cierre cargada.<br>
+      Cargalas desde una tarjeta (Kanban) para que aparezcan acá como barras — y marcá "Objetivo / Hito" en las que corresponda.</div>
+      ${renderPendientes(sinFecha)}
+    `;
+    return;
+  }
+
+  // Rango del calendario: del mínimo al máximo de todas las fechas cargadas, con margen.
+  const allDates = [];
+  conFecha.forEach(c=>{
+    if(c.fechaInicio) allDates.push(parseISO(c.fechaInicio));
+    if(c.fechaCierre) allDates.push(parseISO(c.fechaCierre));
+  });
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  allDates.push(hoy);
+  let min = new Date(Math.min(...allDates));
+  let max = new Date(Math.max(...allDates));
+  min = addDays(min, -10);
+  max = addDays(max, 15);
+  const totalDias = Math.max(1, Math.round((max - min) / 86400000));
+  const pxPerDay = 26;
+  const trackWidth = totalDias * pxPerDay;
+  const pct = (d) => ((d - min) / 86400000) * pxPerDay;
+
+  // Encabezado de meses
+  const months = [];
+  let cursor = new Date(min.getFullYear(), min.getMonth(), 1);
+  while(cursor <= max){
+    const next = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1);
+    const start = cursor < min ? min : cursor;
+    const end = next < max ? next : max;
+    const w = Math.max(0, ((end - start) / 86400000) * pxPerDay);
+    months.push(`<div class="gantt-month" style="width:${w}px;">${fmtMonthShort(cursor)}</div>`);
+    cursor = next;
+  }
+
+  const rows = conFecha.sort(sortByJerarquia).map(c=>{
+    const hz = horizonteCalc(c);
+    let bar = "";
+    if(c.fechaInicio && c.fechaCierre){
+      const left = pct(parseISO(c.fechaInicio));
+      const width = Math.max(6, pct(parseISO(c.fechaCierre)) - left);
+      bar = `<div class="gantt-bar" style="left:${left}px; width:${width}px;" title="${c.frente}: ${c.fechaInicio} → ${c.fechaCierre}">${c.frente}</div>`;
+    } else if(c.fechaInicio){
+      const left = pct(parseISO(c.fechaInicio));
+      bar = `<div class="gantt-bar" style="left:${left}px; width:110px; background:var(--ink-soft);" title="${c.frente}: inicio ${c.fechaInicio}, sin fecha de cierre">${c.frente} (s/cierre)</div>`;
+    }
+    let hito = "";
+    if(c.esHito){
+      const fechaHito = c.fechaCierre || c.fechaInicio;
+      const left = pct(parseISO(fechaHito));
+      hito = `<div class="gantt-hito" style="left:${left}px;" title="Hito: ${c.frente} — ${fechaHito}"></div>
+              <div class="gantt-hito-label" style="left:${left}px;">◆ ${c.frente}</div>`;
+    }
+    return `
+      <div class="gantt-row">
+        <div class="gantt-row-label" title="${c.frente}">
+          <span class="hz-badge ${hz.cls}" style="margin:0; flex-shrink:0;">${hz.h || "s/d"}</span>
+          ${c.frente}
+        </div>
+        <div class="gantt-track">${bar}${hito}</div>
+      </div>`;
+  }).join("");
+
+  const todayLeft = pct(hoy);
+
+  ganttEl.innerHTML = `
+    <div class="gantt-scroll" style="min-width:${trackWidth + 260}px;">
+      <div class="gantt-months" style="padding-left:260px;">${months.join("")}</div>
+      <div class="gantt-body" style="position:relative;">
+        <div class="gantt-today" style="left:${260 + todayLeft}px;"><span class="gantt-today-lbl">Hoy</span></div>
+        ${rows}
+      </div>
+    </div>
+    ${renderPendientes(sinFecha)}
+  `;
+}
+
+function renderPendientes(sinFecha){
+  if(!sinFecha.length) return "";
+  return `
+    <div class="gantt-pending">
+      <h4>Frentes sin ninguna fecha cargada (${sinFecha.length}) — no aparecen en el Gantt hasta que se les cargue Inicio y/o Cierre</h4>
+      <ul>${sinFecha.map(c=>`<li>${c.frente} <span style="color:var(--ink-soft);">(${c.cat})</span></li>`).join("")}</ul>
+    </div>`;
 }
 
 function openModal(id){
@@ -562,6 +792,27 @@ function openModal(id){
     <div class="field" id="etapa-wrap" style="${c.estado==='Acción'?'':'display:none;'}">
       <label>Etapa de la acción</label>
       <select id="f-etapa"><option value="">—</option>${ETAPAS_ACCION.map(e=>`<option ${e===c.etapaAccion?'selected':''}>${e}</option>`).join('')}</select>
+    </div>
+    <div class="field">
+      <label>Fechas</label>
+      <div class="row2">
+        <div><label style="font-weight:400;">Inicio</label><input id="f-fecha-inicio" type="date" value="${c.fechaInicio||""}"></div>
+        <div><label style="font-weight:400;">Cierre</label><input id="f-fecha-cierre" type="date" value="${c.fechaCierre||""}"></div>
+      </div>
+      <div style="margin-top:8px;">
+        <span class="hz-badge" id="hz-live"></span>
+        <span style="font-size:.72rem; color:var(--ink-soft); margin-left:6px;">Horizonte calculado solo — se actualiza según la Fecha de cierre.</span>
+      </div>
+    </div>
+    <div class="field">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input id="f-hito" type="checkbox" style="width:auto;" ${c.esHito?'checked':''}>
+        Es un Objetivo / Hito (aparece como ◆ en el Gantt)
+      </label>
+    </div>
+    <div class="field">
+      <label>Horizonte original del Tamiz (referencia histórica — no se usa para ordenar)</label>
+      <select id="f-horizonte-tamiz"><option value="" ${!c.horizonteTamiz?'selected':''}>Sin definir</option>${HORIZONTES_TAMIZ.map(h=>`<option value="${h}" ${h===c.horizonteTamiz?'selected':''}>${hzTamizLabel(h)}</option>`).join('')}</select>
     </div>
     <div class="field">
       <label>Relevamiento de campo</label>
@@ -606,10 +857,20 @@ function openModal(id){
   `;
   document.getElementById("overlay").classList.add("show");
   updateLiveScore();
+  updateLiveHorizonte();
   ["f-fh","f-fe","f-ie"].forEach(id=>document.getElementById(id).addEventListener("input", updateLiveScore));
+  document.getElementById("f-fecha-cierre").addEventListener("input", updateLiveHorizonte);
   document.getElementById("f-estado").addEventListener("change", (e)=>{
     document.getElementById("etapa-wrap").style.display = e.target.value === "Acción" ? "" : "none";
   });
+}
+
+function updateLiveHorizonte(){
+  const fechaCierre = document.getElementById("f-fecha-cierre").value;
+  const hz = horizonteCalc({fechaCierre});
+  const el = document.getElementById("hz-live");
+  el.className = `hz-badge ${hz.cls}`;
+  el.textContent = hz.label;
 }
 
 function updateLiveScore(){
@@ -639,12 +900,16 @@ function saveModal(id){
     validacion: document.getElementById("f-val").value,
     tipoAccion: document.getElementById("f-tipo").value,
     detalle: document.getElementById("f-detalle").value,
+    horizonteTamiz: document.getElementById("f-horizonte-tamiz").value,
+    fechaInicio: document.getElementById("f-fecha-inicio").value,
+    fechaCierre: document.getElementById("f-fecha-cierre").value,
+    esHito: document.getElementById("f-hito").checked,
   };
   if(!vals.frente){ alert("Ponele un nombre al frente."); return; }
   if(id){
     Object.assign(data.find(x=>x.id===id), vals);
   } else {
-    data.push(card(vals.cat, vals.frente, vals.estado, vals.etapaAccion, vals.releva, vals.fh, vals.fe, vals.ie, vals.adhesion, vals.validacion, vals.tipoAccion, vals.detalle));
+    data.push(card(vals.cat, vals.frente, vals.estado, vals.etapaAccion, vals.releva, vals.fh, vals.fe, vals.ie, vals.adhesion, vals.validacion, vals.tipoAccion, vals.detalle, vals.horizonteTamiz, vals.fechaInicio, vals.fechaCierre, vals.esHito));
   }
   closeModal();
   render();
