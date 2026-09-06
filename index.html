@@ -20,7 +20,9 @@
     --ink: #1B2027;
     --ink-soft: #5B6270;
     --red: #C1503F;
+    --red-bg: #F5E1DD;
     --yellow: #D6A226;
+    --amber-bg: #F7E8CC;
     --green: #4C8A57;
     --radius: 3px;
   }
@@ -95,20 +97,27 @@
   }
   .gantt-track{ position:relative; flex:1; height:100%; }
   .gantt-bar{
-    position:absolute; top:9px; height:20px; border-radius:3px; background:var(--adelante);
-    font-size:.62rem; color:#fff; display:flex; align-items:center; padding:0 6px; white-space:nowrap; overflow:hidden;
+    position:absolute; top:9px; height:20px; border-radius:3px;
+    font-size:.66rem; font-weight:600; display:flex; align-items:center; padding:0 6px; white-space:nowrap; overflow:hidden;
   }
-  .gantt-bar-tentativo{
-    background:repeating-linear-gradient(45deg, var(--ink-soft), var(--ink-soft) 6px, #8890994d 6px, #8890994d 12px);
-    color:#fff; border:1px dashed var(--ink-soft);
-  }
+  .gantt-bar-h1{ background:var(--red); color:#fff; }
+  .gantt-bar-h2{ background:var(--amber); color:var(--graphite); }
+  .gantt-bar-h3{ background:var(--interno); color:#fff; }
+  .gantt-bar-pending{ background:var(--ink-soft); color:#fff; }
+  .gantt-bar-tentativo{ border:2px dashed; }
+  .gantt-bar-tentativo.gantt-bar-h1{ background:var(--red-bg); color:var(--red); border-color:var(--red); }
+  .gantt-bar-tentativo.gantt-bar-h2{ background:var(--amber-bg); color:var(--amber-deep); border-color:var(--amber-deep); }
+  .gantt-bar-tentativo.gantt-bar-h3{ background:var(--interno-bg); color:var(--interno); border-color:var(--interno); }
+  .gantt-bar-tentativo.gantt-bar-pending{ background:var(--line); color:var(--ink-soft); border-color:var(--ink-soft); }
   .gantt-legend{
     display:flex; gap:18px; flex-wrap:wrap; padding:8px 4px 10px; font-size:.72rem; color:var(--ink-soft);
     position:sticky; left:0;
   }
   .gantt-swatch{ display:inline-block; width:14px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; }
-  .gantt-swatch-real{ background:var(--adelante); }
-  .gantt-swatch-tent{ background:repeating-linear-gradient(45deg, var(--ink-soft), var(--ink-soft) 4px, #8890994d 4px, #8890994d 8px); }
+  .gantt-swatch-h1{ background:var(--red); }
+  .gantt-swatch-h2{ background:var(--amber); }
+  .gantt-swatch-h3{ background:var(--interno); }
+  .gantt-swatch-tent{ background:var(--amber-bg); border:2px dashed var(--amber-deep); height:6px; }
   .gantt-swatch-hito{ background:var(--amber); }
   .gantt-hito{
     position:absolute; top:6px; width:18px; height:18px; background:var(--amber);
@@ -295,10 +304,10 @@ const HORIZONTE_TAMIZ_INFO = {
 // Fecha de cierre de cada frente. Reemplaza al horizonte elegido a mano — así el kanban
 // se reordena solo a medida que se acerca un vencimiento, sin que nadie tenga que tocarlo.
 // Sin fecha de cierre cargada, el frente queda marcado "(Definir Facundo)".
-function horizonteCalc(c){
-  if(!c.fechaCierre) return {h:"", order:99, cls:"hz-pending", label:"(Definir Facundo)"};
+function horizonteDesdeFecha(fechaCierre){
+  if(!fechaCierre) return {h:"", order:99, cls:"hz-pending", label:"(Definir Facundo)"};
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const cierre = new Date(c.fechaCierre + "T00:00:00");
+  const cierre = new Date(fechaCierre + "T00:00:00");
   const dias = Math.round((cierre - hoy) / 86400000);
   let h, cls;
   if(dias <= 30){ h = "H1"; cls = "hz-urgente"; }
@@ -308,6 +317,7 @@ function horizonteCalc(c){
   const order = h === "H1" ? 0 : h === "H2" ? 1 : 2;
   return {h, order, cls, label:`${h} · ${diasTxt}`};
 }
+function horizonteCalc(c){ return horizonteDesdeFecha(c.fechaCierre); }
 
 // Sucursales previstas para el rollout de "Gestores del Cambio".
 // Las 4 quedan activas en el modelo desde el arranque, así no hay que tocar código cuando se sume data de Virasoro/Chaco.
@@ -737,9 +747,11 @@ function renderGantt(){
 
   const rows = plan.sort((a,b)=>sortByJerarquia(a.c,b.c)).map(({c, ini, fin, tentativo})=>{
     const hz = horizonteCalc(c);
+    const hzBarra = horizonteDesdeFecha(fin); // color de la barra: horizonte del cierre real o tentativo, según corresponda
     const left = pct(parseISO(ini));
     const width = Math.max(6, pct(parseISO(fin)) - left);
-    const barCls = tentativo ? "gantt-bar gantt-bar-tentativo" : "gantt-bar";
+    const hCls = hzBarra.h ? `gantt-bar-${hzBarra.h.toLowerCase()}` : "gantt-bar-pending";
+    const barCls = `gantt-bar ${hCls} ${tentativo ? "gantt-bar-tentativo" : ""}`;
     const barLabel = tentativo ? `${c.frente} (tent.)` : c.frente;
     const tip = tentativo
       ? `${c.frente}: tentativo ${ini} → ${fin} — estimado del Tamiz, todavía sin fecha real de Facundo`
@@ -767,8 +779,10 @@ function renderGantt(){
 
   ganttEl.innerHTML = `
     <div class="gantt-legend">
-      <span><span class="gantt-swatch gantt-swatch-real"></span> Fecha real cargada</span>
-      <span><span class="gantt-swatch gantt-swatch-tent"></span> Tentativo (estimado del Tamiz — ${tentativas} de ${plan.length} frentes)</span>
+      <span><span class="gantt-swatch gantt-swatch-h1"></span> H1 (0-30 d)</span>
+      <span><span class="gantt-swatch gantt-swatch-h2"></span> H2 (30-90 d)</span>
+      <span><span class="gantt-swatch gantt-swatch-h3"></span> H3 (+90 d)</span>
+      <span><span class="gantt-swatch gantt-swatch-tent"></span> Borde punteado = tentativo, estimado del Tamiz (${tentativas} de ${plan.length} frentes) — sólido = fecha real cargada</span>
       <span><span class="gantt-swatch gantt-swatch-hito"></span> ◆ Objetivo / Hito</span>
     </div>
     <div class="gantt-scroll" style="min-width:${trackWidth + 260}px;">
