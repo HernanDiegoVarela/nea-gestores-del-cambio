@@ -89,7 +89,9 @@
   .gantt-months{ display:flex; position:sticky; top:0; background:var(--paper); z-index:2; border-bottom:2px solid var(--line); }
   .gantt-month{ flex-shrink:0; font-size:.68rem; color:var(--ink-soft); font-weight:600; padding:4px 0 6px 6px; border-left:1px solid var(--line); }
   .gantt-body{ position:relative; }
-  .gantt-row{ display:flex; align-items:center; height:38px; border-bottom:1px solid var(--line); }
+  .gantt-row{ display:flex; align-items:center; height:38px; border-bottom:1px solid var(--line); cursor:pointer; transition:.1s; }
+  .gantt-row:hover{ background:#fff; }
+  .gantt-row:hover .gantt-row-label{ background:#fff; }
   .gantt-row-label{
     position:sticky; left:0; width:260px; flex-shrink:0; background:var(--paper);
     font-size:.76rem; padding-right:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -412,6 +414,13 @@ let data = [
 
 const seedData = data; // guarda la carga inicial de ejemplo, para el primer arranque
 
+// Tabla de referencia Frente → Horizonte del Tamiz, armada a partir del seed. Sirve para
+// "reparar" tarjetas que ya estaban guardadas en la base ANTES de que existiera este campo
+// (o antes de cualquier campo nuevo que se agregue a futuro) — se emparejan por nombre de
+// frente, sin pisar nada que Facundo ya haya cargado en esa tarjeta.
+const TAMIZ_REFERENCE = {};
+seedData.forEach(c => { TAMIZ_REFERENCE[c.frente] = c.horizonteTamiz; });
+
 function setStamp(html){ document.getElementById("stamp").innerHTML = html; }
 function nowLabel(){
   const d = new Date();
@@ -424,7 +433,24 @@ async function loadBoard(){
     if(!res.ok) throw new Error("no api");
     const remote = await res.json();
     if(remote && Array.isArray(remote) && remote.length){
-      data = remote.map(c => ({...c, adhesion: normalizeAdhesion(c.adhesion), horizonteTamiz: c.horizonteTamiz || c.horizonte || "", fechaInicio: c.fechaInicio || "", fechaCierre: c.fechaCierre || "", esHito: !!c.esHito}));
+      let reparado = false;
+      data = remote.map(c => {
+        // Reparación: si esta tarjeta ya estaba guardada en la base ANTES de que existiera
+        // el campo del horizonte del Tamiz, se completa acá emparejando por nombre de
+        // frente — sin tocar estado, fechas, notas ni nada que ya se haya cargado.
+        let horizonteTamiz = c.horizonteTamiz || c.horizonte || "";
+        if(!horizonteTamiz && TAMIZ_REFERENCE[c.frente]){
+          horizonteTamiz = TAMIZ_REFERENCE[c.frente];
+          reparado = true;
+        }
+        let esHito = !!c.esHito;
+        if(!esHito && horizonteTamiz === "Resolver rápido" && c.esHito === undefined){
+          esHito = true;
+          reparado = true;
+        }
+        return {...c, adhesion: normalizeAdhesion(c.adhesion), horizonteTamiz, fechaInicio: c.fechaInicio || "", fechaCierre: c.fechaCierre || "", esHito};
+      });
+      if(reparado) await syncBoard(false); // guarda la reparación en la base para que quede así para todos, no solo en este navegador
     } else {
       // primera vez: no hay nada guardado todavía, sembramos con la data de ejemplo
       await syncBoard(false);
@@ -787,7 +813,7 @@ function renderGantt(){
               <div class="gantt-hito-label" style="left:${hLeft}px;">◆ ${c.frente}</div>`;
     }
     return `
-      <div class="gantt-row">
+      <div class="gantt-row" onclick="openModal('${c.id}')" title="Click para ver/editar el detalle completo">
         <div class="gantt-row-label" title="${c.frente}">
           <span class="hz-badge ${hz.cls}" style="margin:0; flex-shrink:0;">${hz.h || "s/d"}</span>
           ${c.frente}
