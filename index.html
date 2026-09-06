@@ -98,6 +98,18 @@
     position:absolute; top:9px; height:20px; border-radius:3px; background:var(--adelante);
     font-size:.62rem; color:#fff; display:flex; align-items:center; padding:0 6px; white-space:nowrap; overflow:hidden;
   }
+  .gantt-bar-tentativo{
+    background:repeating-linear-gradient(45deg, var(--ink-soft), var(--ink-soft) 6px, #8890994d 6px, #8890994d 12px);
+    color:#fff; border:1px dashed var(--ink-soft);
+  }
+  .gantt-legend{
+    display:flex; gap:18px; flex-wrap:wrap; padding:8px 4px 10px; font-size:.72rem; color:var(--ink-soft);
+    position:sticky; left:0;
+  }
+  .gantt-swatch{ display:inline-block; width:14px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+  .gantt-swatch-real{ background:var(--adelante); }
+  .gantt-swatch-tent{ background:repeating-linear-gradient(45deg, var(--ink-soft), var(--ink-soft) 4px, #8890994d 4px, #8890994d 8px); }
+  .gantt-swatch-hito{ background:var(--amber); }
   .gantt-hito{
     position:absolute; top:6px; width:18px; height:18px; background:var(--amber);
     border:2px solid var(--graphite); transform:translateX(-9px) rotate(45deg);
@@ -666,30 +678,40 @@ function renderDashboard(){
 function parseISO(d){ return new Date(d + "T00:00:00"); }
 function fmtMonthShort(d){ return d.toLocaleDateString("es-AR", {month:"short", year:"2-digit"}).replace(".",""); }
 function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+function toISO(d){ return d.toISOString().slice(0,10); }
+
+// Ventana TENTATIVA (en días desde hoy) para frentes sin fecha real cargada, a partir del
+// horizonte original del Tamiz. Sirve solo para dejarle a Facundo un Gantt de arranque armado
+// — nunca se guarda como fecha real, se recalcula cada vez que se renderiza.
+const VENTANA_TENTATIVA = {
+  "Resolver rápido": {ini:0, fin:15},
+  "H1": {ini:0, fin:45},
+  "H2": {ini:15, fin:120},
+  "H3": {ini:30, fin:270},
+  "": {ini:15, fin:90} // sin ninguna referencia del Tamiz — estimación genérica de mediano plazo
+};
+function tentativeWindow(c){
+  const w = VENTANA_TENTATIVA[c.horizonteTamiz || ""];
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  return { ini: toISO(addDays(hoy, w.ini)), fin: toISO(addDays(hoy, w.fin)) };
+}
 
 function renderGantt(){
   const ganttEl = document.getElementById("gantt");
   const items = data.filter(c => filter === "Todas" || c.cat === filter);
 
-  // Un frente entra al Gantt si tiene al menos una fecha cargada (inicio y/o cierre).
-  const conFecha = items.filter(c => c.fechaInicio || c.fechaCierre);
-  const sinFecha = items.filter(c => !c.fechaInicio && !c.fechaCierre);
-
-  if(conFecha.length === 0){
-    ganttEl.innerHTML = `
-      <div class="gantt-empty">Todavía no hay ninguna Fecha de inicio o de cierre cargada.<br>
-      Cargalas desde una tarjeta (Kanban) para que aparezcan acá como barras — y marcá "Objetivo / Hito" en las que corresponda.</div>
-      ${renderPendientes(sinFecha)}
-    `;
-    return;
-  }
-
-  // Rango del calendario: del mínimo al máximo de todas las fechas cargadas, con margen.
-  const allDates = [];
-  conFecha.forEach(c=>{
-    if(c.fechaInicio) allDates.push(parseISO(c.fechaInicio));
-    if(c.fechaCierre) allDates.push(parseISO(c.fechaCierre));
+  // Todo frente entra al Gantt: con fecha real cargada (barra sólida) o con una ventana
+  // tentativa calculada del Tamiz (barra rayada), para que el tablero salga armado desde el arranque.
+  const conFechaReal = items.filter(c => c.fechaInicio && c.fechaCierre);
+  const plan = items.map(c=>{
+    if(c.fechaInicio && c.fechaCierre) return {c, ini:c.fechaInicio, fin:c.fechaCierre, tentativo:false};
+    const w = tentativeWindow(c);
+    return {c, ini:w.ini, fin:w.fin, tentativo:true};
   });
+
+  // Rango del calendario: del mínimo al máximo de TODAS las fechas (reales + tentativas), con margen.
+  const allDates = [];
+  plan.forEach(p=>{ allDates.push(parseISO(p.ini)); allDates.push(parseISO(p.fin)); });
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   allDates.push(hoy);
   let min = new Date(Math.min(...allDates));
@@ -697,7 +719,7 @@ function renderGantt(){
   min = addDays(min, -10);
   max = addDays(max, 15);
   const totalDias = Math.max(1, Math.round((max - min) / 86400000));
-  const pxPerDay = 26;
+  const pxPerDay = 22;
   const trackWidth = totalDias * pxPerDay;
   const pct = (d) => ((d - min) / 86400000) * pxPerDay;
 
@@ -713,23 +735,22 @@ function renderGantt(){
     cursor = next;
   }
 
-  const rows = conFecha.sort(sortByJerarquia).map(c=>{
+  const rows = plan.sort((a,b)=>sortByJerarquia(a.c,b.c)).map(({c, ini, fin, tentativo})=>{
     const hz = horizonteCalc(c);
-    let bar = "";
-    if(c.fechaInicio && c.fechaCierre){
-      const left = pct(parseISO(c.fechaInicio));
-      const width = Math.max(6, pct(parseISO(c.fechaCierre)) - left);
-      bar = `<div class="gantt-bar" style="left:${left}px; width:${width}px;" title="${c.frente}: ${c.fechaInicio} → ${c.fechaCierre}">${c.frente}</div>`;
-    } else if(c.fechaInicio){
-      const left = pct(parseISO(c.fechaInicio));
-      bar = `<div class="gantt-bar" style="left:${left}px; width:110px; background:var(--ink-soft);" title="${c.frente}: inicio ${c.fechaInicio}, sin fecha de cierre">${c.frente} (s/cierre)</div>`;
-    }
+    const left = pct(parseISO(ini));
+    const width = Math.max(6, pct(parseISO(fin)) - left);
+    const barCls = tentativo ? "gantt-bar gantt-bar-tentativo" : "gantt-bar";
+    const barLabel = tentativo ? `${c.frente} (tent.)` : c.frente;
+    const tip = tentativo
+      ? `${c.frente}: tentativo ${ini} → ${fin} — estimado del Tamiz, todavía sin fecha real de Facundo`
+      : `${c.frente}: ${ini} → ${fin}`;
+    const bar = `<div class="${barCls}" style="left:${left}px; width:${width}px;" title="${tip}">${barLabel}</div>`;
     let hito = "";
     if(c.esHito){
-      const fechaHito = c.fechaCierre || c.fechaInicio;
-      const left = pct(parseISO(fechaHito));
-      hito = `<div class="gantt-hito" style="left:${left}px;" title="Hito: ${c.frente} — ${fechaHito}"></div>
-              <div class="gantt-hito-label" style="left:${left}px;">◆ ${c.frente}</div>`;
+      const fechaHito = c.fechaCierre || c.fechaInicio || fin;
+      const hLeft = pct(parseISO(fechaHito));
+      hito = `<div class="gantt-hito" style="left:${hLeft}px;" title="Hito: ${c.frente} — ${fechaHito}"></div>
+              <div class="gantt-hito-label" style="left:${hLeft}px;">◆ ${c.frente}</div>`;
     }
     return `
       <div class="gantt-row">
@@ -742,8 +763,14 @@ function renderGantt(){
   }).join("");
 
   const todayLeft = pct(hoy);
+  const tentativas = plan.filter(p=>p.tentativo).length;
 
   ganttEl.innerHTML = `
+    <div class="gantt-legend">
+      <span><span class="gantt-swatch gantt-swatch-real"></span> Fecha real cargada</span>
+      <span><span class="gantt-swatch gantt-swatch-tent"></span> Tentativo (estimado del Tamiz — ${tentativas} de ${plan.length} frentes)</span>
+      <span><span class="gantt-swatch gantt-swatch-hito"></span> ◆ Objetivo / Hito</span>
+    </div>
     <div class="gantt-scroll" style="min-width:${trackWidth + 260}px;">
       <div class="gantt-months" style="padding-left:260px;">${months.join("")}</div>
       <div class="gantt-body" style="position:relative;">
@@ -751,17 +778,7 @@ function renderGantt(){
         ${rows}
       </div>
     </div>
-    ${renderPendientes(sinFecha)}
   `;
-}
-
-function renderPendientes(sinFecha){
-  if(!sinFecha.length) return "";
-  return `
-    <div class="gantt-pending">
-      <h4>Frentes sin ninguna fecha cargada (${sinFecha.length}) — no aparecen en el Gantt hasta que se les cargue Inicio y/o Cierre</h4>
-      <ul>${sinFecha.map(c=>`<li>${c.frente} <span style="color:var(--ink-soft);">(${c.cat})</span></li>`).join("")}</ul>
-    </div>`;
 }
 
 function openModal(id){
