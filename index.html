@@ -129,6 +129,8 @@
   }
   .gantt-today{ position:absolute; top:0; bottom:0; width:2px; background:var(--red); z-index:1; }
   .gantt-today-lbl{ position:absolute; top:-16px; font-size:.62rem; color:var(--red); font-weight:600; transform:translateX(-50%); }
+  .gantt-kickoff{ position:absolute; top:0; bottom:0; width:2px; background:var(--adelante); z-index:1; border-left:2px dashed var(--adelante); background:none; }
+  .gantt-kickoff-lbl{ position:absolute; top:-16px; font-size:.62rem; color:var(--adelante); font-weight:600; transform:translateX(-50%); white-space:nowrap; }
   .gantt-empty{ padding:40px 20px; color:var(--ink-soft); font-size:.85rem; text-align:center; }
   .gantt-pending{ padding:14px 4px 4px; }
   .gantt-pending h4{ font-size:.78rem; color:var(--ink-soft); margin:0 0 8px; text-transform:uppercase; letter-spacing:.03em; }
@@ -300,15 +302,15 @@ const HORIZONTE_TAMIZ_INFO = {
   "": {ventana:"Sin definir"}
 };
 
-// Horizonte ACTUAL: se calcula solo, a partir de los días que faltan (desde HOY) hasta la
-// Fecha de cierre de cada frente. Reemplaza al horizonte elegido a mano — así el kanban
-// se reordena solo a medida que se acerca un vencimiento, sin que nadie tenga que tocarlo.
-// Sin fecha de cierre cargada, el frente queda marcado "(Definir Facundo)".
-function horizonteDesdeFecha(fechaCierre){
+// Horizonte ACTUAL: se calcula solo, a partir de los días que faltan hasta la Fecha de
+// cierre de cada frente, contados desde una fecha de referencia. Reemplaza al horizonte
+// elegido a mano — así el kanban se reordena solo a medida que se acerca un vencimiento,
+// sin que nadie tenga que tocarlo. Sin fecha de cierre cargada, el frente queda marcado
+// "(Definir Facundo)".
+function horizonteEntreFechas(fechaCierre, refDate){
   if(!fechaCierre) return {h:"", order:99, cls:"hz-pending", label:"(Definir Facundo)"};
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
   const cierre = new Date(fechaCierre + "T00:00:00");
-  const dias = Math.round((cierre - hoy) / 86400000);
+  const dias = Math.round((cierre - refDate) / 86400000);
   let h, cls;
   if(dias <= 30){ h = "H1"; cls = "hz-urgente"; }
   else if(dias <= 90){ h = "H2"; cls = "hz-h1"; }
@@ -316,6 +318,11 @@ function horizonteDesdeFecha(fechaCierre){
   const diasTxt = dias < 0 ? `vencido hace ${Math.abs(dias)} d` : `en ${dias} d`;
   const order = h === "H1" ? 0 : h === "H2" ? 1 : 2;
   return {h, order, cls, label:`${h} · ${diasTxt}`};
+}
+// Para fechas REALES cargadas por Facundo: cuenta desde hoy — la urgencia real avanza con el calendario.
+function horizonteDesdeFecha(fechaCierre){
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  return horizonteEntreFechas(fechaCierre, hoy);
 }
 function horizonteCalc(c){ return horizonteDesdeFecha(c.fechaCierre); }
 
@@ -337,13 +344,18 @@ function normalizeAdhesion(a){
 }
 
 function card(cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle, horizonteTamiz, fechaInicio, fechaCierre, esHito){
-  return {id: crypto.randomUUID(), cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion: normalizeAdhesion(adhesion), validacion, tipoAccion, detalle, horizonteTamiz: horizonteTamiz || "", fechaInicio: fechaInicio || "", fechaCierre: fechaCierre || "", esHito: !!esHito};
+  // Si no se pasa esHito explícitamente, se auto-marca como Hito todo frente que Rafael y
+  // Hernán ya definieron como "Resolver rápido" en el Tamiz — son los objetivos que se
+  // dijeron "esto arranca ya", así nadie tiene que acordarse de tildar el check a mano.
+  // Igual queda editable desde el modal para sumar otros hitos puntuales.
+  const hito = (esHito === undefined) ? (horizonteTamiz === "Resolver rápido") : !!esHito;
+  return {id: crypto.randomUUID(), cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion: normalizeAdhesion(adhesion), validacion, tipoAccion, detalle, horizonteTamiz: horizonteTamiz || "", fechaInicio: fechaInicio || "", fechaCierre: fechaCierre || "", esHito: hito};
 }
 
 // Atajo para los frentes que todavía no tienen relevamiento de campo cargado:
 // solo cat, frente, estado y (opcionalmente) el horizonte original del Tamiz.
 function cardH(cat, frente, estado, horizonteTamiz){
-  return card(cat, frente, estado, "", "", "", "", "", "", "", "", "", horizonteTamiz || "", "", "", false);
+  return card(cat, frente, estado, "", "", "", "", "", "", "", "", "", horizonteTamiz || "", "", "");
 }
 
 // Horizonte pre-cargado tal cual quedó definido en el Tamiz (Rafael + Hernán) y en el
@@ -690,11 +702,18 @@ function fmtMonthShort(d){ return d.toLocaleDateString("es-AR", {month:"short", 
 function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
 function toISO(d){ return d.toISOString().slice(0,10); }
 
-// Ventana TENTATIVA (en días desde hoy) para frentes sin fecha real cargada, a partir del
-// horizonte original del Tamiz. Sirve solo para dejarle a Facundo un Gantt de arranque armado
-// — nunca se guarda como fecha real, se recalcula cada vez que se renderiza.
+// Fecha de arranque de Facundo en la sucursal — el "día 1" real del plan de inducción.
+// Las ventanas tentativas cuentan sus días desde ACÁ, no desde la fecha en que se abre el
+// navegador: así "Resolver rápido" significa siempre "primeros 30 días de Facundo", fijo,
+// en vez de un plazo que flota día a día antes de que arranque. Si la fecha de arranque
+// cambia, se actualiza solo acá.
+const KICKOFF_FACUNDO = "2026-09-14";
+
+// Ventana TENTATIVA (en días desde el arranque de Facundo) para frentes sin fecha real
+// cargada, a partir del horizonte original del Tamiz. Sirve solo para dejarle a Facundo un
+// Gantt de arranque armado — nunca se guarda como fecha real, se recalcula cada vez que se renderiza.
 const VENTANA_TENTATIVA = {
-  "Resolver rápido": {ini:0, fin:15},
+  "Resolver rápido": {ini:0, fin:30},
   "H1": {ini:0, fin:45},
   "H2": {ini:15, fin:120},
   "H3": {ini:30, fin:270},
@@ -702,8 +721,8 @@ const VENTANA_TENTATIVA = {
 };
 function tentativeWindow(c){
   const w = VENTANA_TENTATIVA[c.horizonteTamiz || ""];
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  return { ini: toISO(addDays(hoy, w.ini)), fin: toISO(addDays(hoy, w.fin)) };
+  const kickoff = parseISO(KICKOFF_FACUNDO);
+  return { ini: toISO(addDays(kickoff, w.ini)), fin: toISO(addDays(kickoff, w.fin)) };
 }
 
 function renderGantt(){
@@ -723,7 +742,8 @@ function renderGantt(){
   const allDates = [];
   plan.forEach(p=>{ allDates.push(parseISO(p.ini)); allDates.push(parseISO(p.fin)); });
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-  allDates.push(hoy);
+  const kickoff = parseISO(KICKOFF_FACUNDO);
+  allDates.push(hoy, kickoff);
   let min = new Date(Math.min(...allDates));
   let max = new Date(Math.max(...allDates));
   min = addDays(min, -10);
@@ -747,14 +767,16 @@ function renderGantt(){
 
   const rows = plan.sort((a,b)=>sortByJerarquia(a.c,b.c)).map(({c, ini, fin, tentativo})=>{
     const hz = horizonteCalc(c);
-    const hzBarra = horizonteDesdeFecha(fin); // color de la barra: horizonte del cierre real o tentativo, según corresponda
+    // Color de la barra: si es una fecha real, urgencia contada desde HOY; si es tentativa,
+    // contada desde el arranque de Facundo (el "Resolver rápido" pasa a ser siempre H1 fijo).
+    const hzBarra = tentativo ? horizonteEntreFechas(fin, kickoff) : horizonteDesdeFecha(fin);
     const left = pct(parseISO(ini));
     const width = Math.max(6, pct(parseISO(fin)) - left);
     const hCls = hzBarra.h ? `gantt-bar-${hzBarra.h.toLowerCase()}` : "gantt-bar-pending";
     const barCls = `gantt-bar ${hCls} ${tentativo ? "gantt-bar-tentativo" : ""}`;
     const barLabel = tentativo ? `${c.frente} (tent.)` : c.frente;
     const tip = tentativo
-      ? `${c.frente}: tentativo ${ini} → ${fin} — estimado del Tamiz, todavía sin fecha real de Facundo`
+      ? `${c.frente}: tentativo ${ini} → ${fin} — estimado desde el arranque de Facundo (${KICKOFF_FACUNDO}), todavía sin fecha real`
       : `${c.frente}: ${ini} → ${fin}`;
     const bar = `<div class="${barCls}" style="left:${left}px; width:${width}px;" title="${tip}">${barLabel}</div>`;
     let hito = "";
@@ -775,6 +797,7 @@ function renderGantt(){
   }).join("");
 
   const todayLeft = pct(hoy);
+  const kickoffLeft = pct(kickoff);
   const tentativas = plan.filter(p=>p.tentativo).length;
 
   ganttEl.innerHTML = `
@@ -782,13 +805,14 @@ function renderGantt(){
       <span><span class="gantt-swatch gantt-swatch-h1"></span> H1 (0-30 d)</span>
       <span><span class="gantt-swatch gantt-swatch-h2"></span> H2 (30-90 d)</span>
       <span><span class="gantt-swatch gantt-swatch-h3"></span> H3 (+90 d)</span>
-      <span><span class="gantt-swatch gantt-swatch-tent"></span> Borde punteado = tentativo, estimado del Tamiz (${tentativas} de ${plan.length} frentes) — sólido = fecha real cargada</span>
+      <span><span class="gantt-swatch gantt-swatch-tent"></span> Borde punteado = tentativo desde el arranque de Facundo (${KICKOFF_FACUNDO} — ${tentativas} de ${plan.length} frentes) — sólido = fecha real cargada</span>
       <span><span class="gantt-swatch gantt-swatch-hito"></span> ◆ Objetivo / Hito</span>
     </div>
     <div class="gantt-scroll" style="min-width:${trackWidth + 260}px;">
       <div class="gantt-months" style="padding-left:260px;">${months.join("")}</div>
       <div class="gantt-body" style="position:relative;">
         <div class="gantt-today" style="left:${260 + todayLeft}px;"><span class="gantt-today-lbl">Hoy</span></div>
+        ${Math.abs(kickoffLeft - todayLeft) > 3 ? `<div class="gantt-kickoff" style="left:${260 + kickoffLeft}px;"><span class="gantt-kickoff-lbl">Arranque Facundo</span></div>` : ""}
         ${rows}
       </div>
     </div>
