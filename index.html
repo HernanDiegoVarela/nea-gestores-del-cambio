@@ -86,8 +86,12 @@
   /* Gantt */
   .gantt{ height:100%; overflow:auto; }
   .gantt-scroll{ min-width:900px; }
-  .gantt-months{ display:flex; position:sticky; top:0; background:var(--paper); z-index:2; border-bottom:2px solid var(--line); }
-  .gantt-month{ flex-shrink:0; font-size:.68rem; color:var(--ink-soft); font-weight:600; padding:4px 0 6px 6px; border-left:1px solid var(--line); }
+  .gantt-months{ display:flex; position:sticky; top:0; background:var(--paper); z-index:2; height:22px; }
+  .gantt-month{ flex-shrink:0; font-size:.68rem; color:var(--ink-soft); font-weight:600; line-height:22px; padding-left:6px; border-left:1px solid var(--line); overflow:hidden; white-space:nowrap; }
+  .gantt-days{ display:flex; position:sticky; top:22px; background:var(--paper); z-index:2; height:16px; border-bottom:2px solid var(--line); }
+  .gantt-day{ flex-shrink:0; font-size:.6rem; color:var(--ink-soft); text-align:center; line-height:16px; border-left:1px solid var(--line); }
+  .gantt-day-weekend{ background:rgba(27,32,39,.05); }
+  .gantt-day-first{ font-weight:700; color:var(--ink); }
   .gantt-body{ position:relative; }
   .gantt-row{ display:flex; align-items:center; height:38px; border-bottom:1px solid var(--line); cursor:pointer; transition:.1s; }
   .gantt-row:hover{ background:#fff; }
@@ -791,6 +795,17 @@ function renderGantt(){
     cursor = next;
   }
 
+  // Encabezado de días (número de día + sombreado de fines de semana)
+  const days = [];
+  let dcursor = new Date(min);
+  while(dcursor <= max){
+    const dow = dcursor.getDay();
+    const isWeekend = dow === 0 || dow === 6;
+    const isFirst = dcursor.getDate() === 1;
+    days.push(`<div class="gantt-day ${isWeekend ? "gantt-day-weekend" : ""} ${isFirst ? "gantt-day-first" : ""}" style="width:${pxPerDay}px;" title="${dcursor.toLocaleDateString("es-AR",{weekday:"long", day:"numeric", month:"long"})}">${dcursor.getDate()}</div>`);
+    dcursor = addDays(dcursor, 1);
+  }
+
   const rows = plan.sort((a,b)=>sortByJerarquia(a.c,b.c)).map(({c, ini, fin, tentativo})=>{
     const hz = horizonteCalc(c);
     // Color de la barra: si es una fecha real, urgencia contada desde HOY; si es tentativa,
@@ -836,6 +851,7 @@ function renderGantt(){
     </div>
     <div class="gantt-scroll" style="min-width:${trackWidth + 260}px;">
       <div class="gantt-months" style="padding-left:260px;">${months.join("")}</div>
+      <div class="gantt-days" style="padding-left:260px;">${days.join("")}</div>
       <div class="gantt-body" style="position:relative;">
         <div class="gantt-today" style="left:${260 + todayLeft}px;"><span class="gantt-today-lbl">Hoy</span></div>
         ${Math.abs(kickoffLeft - todayLeft) > 3 ? `<div class="gantt-kickoff" style="left:${260 + kickoffLeft}px;"><span class="gantt-kickoff-lbl">Arranque Facundo</span></div>` : ""}
