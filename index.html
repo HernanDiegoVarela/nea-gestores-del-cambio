@@ -247,8 +247,129 @@
   .btn-close{ background:none; border:none; color:var(--ink-soft); font-size:1.3rem; cursor:pointer; line-height:1; }
   .modal-top{ display:flex; justify-content:space-between; align-items:flex-start; }
 
+  /* Bienvenida: ¿quién quiere trabajar hoy? */
+  .welcome{
+    position:fixed; inset:0; background:rgba(27,32,39,.82); display:none;
+    align-items:center; justify-content:center; z-index:60; padding:20px;
+  }
+  .welcome.show{ display:flex; }
+  .welcome-box{
+    background:#fff; width:100%; max-width:460px; border-radius:4px; padding:28px 28px 24px;
+    border-top:4px solid var(--amber);
+  }
+  .welcome-box h2{ margin:0 0 4px; font-size:1.35rem; }
+  .welcome-box .sub{ color:var(--ink-soft); font-size:.84rem; margin-bottom:18px; }
+  .who-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .who-btn{
+    border:2px solid var(--line); background:#fff; color:var(--graphite); border-radius:4px;
+    padding:16px 10px; font-family:inherit; font-size:1rem; font-weight:700; cursor:pointer; transition:.15s;
+  }
+  .who-btn:hover{ border-color:var(--graphite); }
+  .who-btn.last{ border-color:var(--amber); background:var(--amber-bg); }
+  .who-btn .hint{ display:block; font-size:.66rem; font-weight:500; color:var(--amber-deep); margin-top:3px; }
+  .nudges{ list-style:none; padding:0; margin:0 0 20px; }
+  .nudges li{
+    font-size:.88rem; padding:10px 12px; border-left:3px solid var(--line); background:var(--paper);
+    margin-bottom:8px; line-height:1.4;
+  }
+  .nudges li.alerta{ border-left-color:var(--red); }
+  .nudges li.ok{ border-left-color:var(--green); }
+  .nudges li.aviso{ border-left-color:var(--amber); }
+  .who-pill{
+    font-family:'IBM Plex Mono', monospace; font-size:.7rem; color:#fff; margin-bottom:4px;
+  }
+  .who-pill button{
+    background:none; border:none; color:#B7BDC8; text-decoration:underline; cursor:pointer;
+    font-family:inherit; font-size:.66rem; padding:0 0 0 6px;
+  }
+
+  /* Vista Actividad */
+  .actividad{ height:100%; overflow-y:auto; padding-bottom:12px; }
+  .act-users{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+  .act-user{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:14px; border-top:4px solid var(--line); }
+  .act-user.verde{ border-top-color:var(--green); }
+  .act-user.amarillo{ border-top-color:var(--yellow); }
+  .act-user.rojo{ border-top-color:var(--red); }
+  .act-user h4{ margin:0 0 8px; font-size:1rem; }
+  .act-user .linea{ display:flex; justify-content:space-between; font-size:.76rem; color:var(--ink-soft); margin-bottom:3px; }
+  .act-user .linea b{ font-family:'IBM Plex Mono', monospace; color:var(--ink); white-space:nowrap; padding-left:6px; }
+  .act-user .ultimo{ font-size:.72rem; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); color:var(--ink-soft); }
+  .act-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .senales{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .senal{ background:var(--paper); border-radius:4px; padding:10px 12px; }
+  .senal .num{ font-family:'IBM Plex Mono', monospace; font-size:1.3rem; font-weight:700; }
+  .senal .lbl{ font-size:.72rem; color:var(--ink-soft); }
+  .tabla-sem{ width:100%; border-collapse:collapse; font-size:.78rem; }
+  .tabla-sem th, .tabla-sem td{ padding:5px 6px; border-bottom:1px solid var(--line); text-align:center; }
+  .tabla-sem th:first-child, .tabla-sem td:first-child{ text-align:left; color:var(--ink-soft); }
+  .tabla-sem td.cero{ color:var(--line); }
+  .tabla-sem td.alto{ font-weight:700; }
+  .feed-filtros{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .feed-filtros button{
+    border:1px solid var(--line); background:#fff; color:var(--ink-soft); padding:4px 10px; border-radius:var(--radius);
+    font-size:.74rem; cursor:pointer; font-family:inherit;
+  }
+  .feed-filtros button.active{ background:var(--graphite); color:#fff; border-color:var(--graphite); }
+  .feed-item{ padding:9px 0; border-bottom:1px solid var(--line); font-size:.8rem; }
+  .feed-item .cab{ display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
+  .feed-item .cuando{ font-family:'IBM Plex Mono', monospace; font-size:.7rem; color:var(--ink-soft); }
+  .feed-item .quien{ font-weight:700; }
+  .feed-item .tipo{ font-size:.66rem; font-weight:600; padding:1px 7px; border-radius:10px; background:var(--line); color:var(--ink-soft); }
+  .feed-item .tipo.alta{ background:var(--amber-bg); color:var(--amber-deep); }
+  .feed-item .tipo.edicion{ background:var(--adelante-bg); color:var(--adelante); }
+  .feed-item .tipo.mensaje{ background:var(--interno-bg); color:var(--interno); }
+  .feed-item ul{ margin:4px 0 0; padding-left:18px; color:var(--ink-soft); font-size:.74rem; }
+  .feed-item ul b{ color:var(--ink); font-weight:600; }
+  .act-vacio{ padding:30px; text-align:center; color:var(--ink-soft); font-size:.85rem; }
+
+  /* Conversaciones por frente */
+  .u-rafa{ --u:#3C6E9C; --u-bg:#E7EEF5; }
+  .u-guille{ --u:#9C5A3C; --u-bg:#F5E9E1; }
+  .u-facu{ --u:#4F7A4A; --u-bg:#E9F0E4; }
+  .u-hernan{ --u:#1B2027; --u-bg:#F7E8CC; }
+  .conv-row{
+    display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-top:7px; padding-top:6px;
+    border-top:1px dashed var(--line); font-size:.66rem;
+  }
+  .conv-row .ico{ font-size:.75rem; margin-right:1px; }
+  .u-chip{
+    display:inline-block; font-size:.64rem; font-weight:600; padding:1px 7px; border-radius:10px;
+    background:var(--u-bg); color:var(--u); border:1px solid transparent;
+  }
+  .u-chip.ultimo{ border-color:var(--u); }
+  .conv-row .n{ font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); margin-left:2px; }
+  .nuevo-badge{
+    font-size:.6rem; font-weight:700; padding:1px 7px; border-radius:10px;
+    background:var(--red); color:#fff; margin-left:auto; letter-spacing:.02em;
+  }
+  .card.con-nuevo{ border-color:var(--red); box-shadow:0 0 0 1px var(--red-bg); }
+
+  .conv-box{ background:var(--paper); border:1px solid var(--line); border-radius:4px; padding:12px; }
+  .conv-vacia{ font-size:.8rem; color:var(--ink-soft); padding:4px 0 10px; }
+  .msg{ display:flex; flex-direction:column; margin-bottom:10px; max-width:88%; }
+  .msg.mio{ margin-left:auto; align-items:flex-end; }
+  .msg .burbuja{
+    background:#fff; border:1px solid var(--line); border-left:3px solid var(--u);
+    border-radius:4px; padding:7px 10px; font-size:.84rem; line-height:1.4; white-space:pre-wrap; word-break:break-word;
+  }
+  .msg.mio .burbuja{ border-left:1px solid var(--line); border-right:3px solid var(--u); background:var(--u-bg); }
+  .msg .quien{ font-size:.68rem; color:var(--ink-soft); margin-bottom:2px; }
+  .msg .quien b{ color:var(--u); }
+  .msg.es-nuevo .burbuja{ box-shadow:0 0 0 2px var(--red-bg); }
+  .conv-input{ display:flex; gap:8px; align-items:flex-end; margin-top:4px; }
+  .conv-input textarea{ min-height:44px !important; flex:1; }
+  .btn-enviar{
+    background:var(--amber); color:var(--graphite); border:none; padding:9px 14px; border-radius:var(--radius);
+    font-family:inherit; font-weight:700; cursor:pointer; font-size:.8rem; white-space:nowrap;
+  }
+  .btn-enviar:disabled{ opacity:.5; cursor:default; }
+  @media (max-width:800px){
+    .act-users{ grid-template-columns:1fr 1fr; }
+    .act-grid{ grid-template-columns:1fr; }
+  }
+
   @media print{
-    .toolbar, .overlay{ display:none !important; }
+    .toolbar, .overlay, .welcome{ display:none !important; }
     body{ height:auto; overflow:visible; display:block; }
     main{ padding:0 12px; }
     header{ border-bottom:2px solid #000; }
@@ -270,7 +391,10 @@
     <h1>Gestores del Cambio</h1>
     <p>Programa Nueva Etapa 2030 · NEA Eléctrica — Posadas marca el paso</p>
   </div>
-  <div class="stamp" id="stamp">CONECTANDO…</div>
+  <div style="text-align:right;">
+    <div class="who-pill" id="who-pill"></div>
+    <div class="stamp" id="stamp">CONECTANDO…</div>
+  </div>
 </header>
 
 <div class="toolbar" id="toolbar"></div>
@@ -279,10 +403,15 @@
   <div class="board" id="board"></div>
   <div class="dash" id="dash" style="display:none;"></div>
   <div class="gantt" id="gantt" style="display:none;"></div>
+  <div class="actividad" id="actividad" style="display:none;"></div>
 </main>
 
 <div class="overlay" id="overlay">
   <div class="modal" id="modal"></div>
+</div>
+
+<div class="welcome" id="welcome">
+  <div class="welcome-box" id="welcome-box"></div>
 </div>
 
 <script>
@@ -463,7 +592,9 @@ async function loadBoard(){
   } catch(e){
     setStamp(`SIN CONEXIÓN A LA BASE<br>Trabajando solo en este navegador`);
   }
+  await Promise.all([loadActividad(), loadConsultas()]);
   render();
+  showWelcome();
 }
 
 async function syncBoard(showFeedback = true){
@@ -480,6 +611,451 @@ async function syncBoard(showFeedback = true){
     setStamp(`SIN CONEXIÓN A LA BASE<br>Cambios solo en este navegador`);
   }
 }
+
+// ============================================================================
+// BITÁCORA DE ACTIVIDAD — quién abre la app y quién cambia qué
+// ----------------------------------------------------------------------------
+// Al abrir, la app pregunta "¿Quién quiere trabajar hoy?" (Rafa, Guille, Facu, Hernán).
+// Desde ahí se registra en /.netlify/functions/activity:
+//   · "apertura": alguien entró a la app
+//   · "alta": creó un frente nuevo
+//   · "edicion": guardó un frente con al menos un campo distinto (si no cambió nada, no cuenta)
+// La reparación automática del arranque (horizonte del Tamiz / hito) NO se registra:
+// no es actividad de nadie.
+// Es un sistema de honor: cada uno elige su nombre; no es una auditoría a prueba de todo.
+// ============================================================================
+const USUARIOS = ["Rafa","Guille","Facu","Hernán"];
+const USUARIO_ADMIN = "Hernán";   // único que ve la pestaña Actividad
+const USUARIO_FOCO = "Facu";      // a quien se le miden las "señales de uso real"
+const API_ACTIVIDAD = "/.netlify/functions/activity";
+const LS_USUARIO = "gdc_usuario";
+
+let currentUser = "";
+let actividad = [];   // eventos, del más nuevo al más viejo
+
+const CAMPOS_LABEL = {
+  frente:"Frente", cat:"Categoría", estado:"Estado", etapaAccion:"Etapa de acción",
+  releva:"Relevamiento de campo", fh:"Factib. humana", fe:"Factib. económica", ie:"Impacto económico",
+  validacion:"Validación", tipoAccion:"Tipo de acción", detalle:"Detalle de la acción",
+  horizonteTamiz:"Horizonte Tamiz", fechaInicio:"Fecha inicio", fechaCierre:"Fecha cierre", esHito:"Hito"
+};
+
+function lsGet(k){ try{ return localStorage.getItem(k) || ""; } catch(e){ return ""; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, v); } catch(e){} }
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+
+async function loadActividad(){
+  try{
+    const res = await fetch(API_ACTIVIDAD, {cache:"no-store"});
+    if(!res.ok) throw new Error("no api");
+    const lista = await res.json();
+    actividad = Array.isArray(lista) ? lista : [];
+  } catch(e){
+    actividad = [];
+  }
+}
+
+async function logEvent(tipo, frente, cambios){
+  if(!currentUser) return;
+  const ev = {user: currentUser, tipo, frente: frente || "", cambios: cambios || []};
+  // Se suma ya a la lista local (con hora del navegador) para que la pestaña Actividad
+  // lo muestre al instante; la base lo guarda con hora del servidor.
+  actividad.unshift({...ev, ts: new Date().toISOString()});
+  try{
+    await fetch(API_ACTIVIDAD, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(ev)});
+  } catch(e){ /* sin conexión: el evento queda solo en este navegador */ }
+}
+
+// Compara la tarjeta antes y después de guardar, campo por campo.
+function diffCard(antes, despues){
+  const cambios = [];
+  const norm = (k, v) => k === "esHito" ? (v ? "Sí" : "No") : String(v ?? "").trim();
+  Object.keys(CAMPOS_LABEL).forEach(k=>{
+    const de = norm(k, antes[k]), a = norm(k, despues[k]);
+    if(de !== a) cambios.push({campo: CAMPOS_LABEL[k], de, a});
+  });
+  SUCURSALES.forEach(s=>{
+    const de = (antes.adhesion && antes.adhesion[s]) || "";
+    const a = (despues.adhesion && despues.adhesion[s]) || "";
+    if(de !== a) cambios.push({campo: `Adhesión ${s}`, de, a});
+  });
+  return cambios;
+}
+
+function diasDesde(iso){
+  const d = new Date(iso); if(isNaN(d)) return null;
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+function haceTxt(iso){
+  const d = new Date(iso); if(isNaN(d)) return "—";
+  const min = Math.floor((Date.now() - d.getTime()) / 60000);
+  if(min < 1) return "recién";
+  if(min < 60) return `hace ${min} min`;
+  const h = Math.floor(min / 60);
+  if(h < 24) return `hace ${h} h`;
+  const dias = Math.floor(h / 24);
+  return dias === 1 ? "ayer" : `hace ${dias} días`;
+}
+function fechaHora(iso){
+  const d = new Date(iso); if(isNaN(d)) return "—";
+  return d.toLocaleDateString("es-AR", {day:"2-digit", month:"2-digit"}) + " " +
+         d.toLocaleTimeString("es-AR", {hour:"2-digit", minute:"2-digit"});
+}
+
+// --- Bienvenida -------------------------------------------------------------
+function showWelcome(){
+  const ultimo = lsGet(LS_USUARIO);
+  const box = document.getElementById("welcome-box");
+  box.innerHTML = `
+    <h2>¡Hola! ¿Quién quiere trabajar hoy?</h2>
+    <div class="sub">Elegí tu nombre para entrar al tablero.</div>
+    <div class="who-grid">
+      ${USUARIOS.map(u => `
+        <button class="who-btn ${u===ultimo ? "last" : ""}" data-user="${esc(u)}">
+          ${esc(u)}${u===ultimo ? `<span class="hint">la última vez</span>` : ""}
+        </button>`).join("")}
+    </div>`;
+  box.querySelectorAll(".who-btn").forEach(b => b.onclick = () => chooseUser(b.dataset.user));
+  document.getElementById("welcome").classList.add("show");
+}
+
+function chooseUser(u){
+  // Lo anterior de esta persona, ANTES de registrar la apertura de hoy.
+  const misCambios = actividad.filter(e => e.user === u && e.tipo !== "apertura");
+  currentUser = u;
+  lsSet(LS_USUARIO, u);
+  logEvent("apertura");
+  renderWhoPill();
+  render();
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const sinCierre = data.filter(c => !c.fechaCierre).length;
+  const vencidos = data.filter(c => c.fechaCierre && parseISO(c.fechaCierre) < hoy).length;
+  const nudges = [];
+  const convNuevas = data.map(c => ({c, n: noLeidos(c.id, u)})).filter(x => x.n.length);
+  if(convNuevas.length){
+    const autores = [...new Set(convNuevas.flatMap(x => x.n.map(m => m.user)))];
+    const frentes = convNuevas.slice(0, 3).map(x => `<b>${esc(x.c.frente)}</b>`).join(", ") + (convNuevas.length > 3 ? "…" : "");
+    nudges.push({cls:"alerta", txt:`💬 ${esc(autores.join(" y "))} te ${autores.length > 1 ? "escribieron" : "escribió"} en ${convNuevas.length === 1 ? "el frente" : `${convNuevas.length} frentes`}: ${frentes}.`});
+  }
+  if(misCambios.length){
+    const ult = misCambios[0];
+    const d = diasDesde(ult.ts);
+    nudges.push({cls: d !== null && d > 7 ? "alerta" : d !== null && d > 2 ? "aviso" : "ok",
+      txt:`Tu último cambio fue ${haceTxt(ult.ts)}${ult.frente ? ` en <b>${esc(ult.frente)}</b>` : ""}.`});
+  } else {
+    nudges.push({cls:"aviso", txt:"Todavía no registraste cambios en el tablero."});
+  }
+  if(sinCierre){
+    nudges.push({cls:"aviso", txt: u === USUARIO_FOCO
+      ? `Tenés <b>${sinCierre}</b> frentes esperando fecha de cierre.`
+      : `Hay <b>${sinCierre}</b> frentes sin fecha de cierre.`});
+  }
+  if(vencidos){
+    nudges.push({cls:"alerta", txt:`<b>${vencidos}</b> ${vencidos === 1 ? "frente tiene" : "frentes tienen"} la fecha de cierre vencida.`});
+  }
+
+  document.getElementById("welcome-box").innerHTML = `
+    <h2>¡Hola ${esc(u)}!</h2>
+    <div class="sub">Así está el tablero hoy:</div>
+    <ul class="nudges">${nudges.map(n => `<li class="${n.cls}">${n.txt}</li>`).join("")}</ul>
+    <button class="btn-primary" id="welcome-go" style="width:100%;">A trabajar</button>`;
+  document.getElementById("welcome-go").onclick = () => document.getElementById("welcome").classList.remove("show");
+}
+
+function renderWhoPill(){
+  const el = document.getElementById("who-pill");
+  el.innerHTML = currentUser ? `Trabajando: ${esc(currentUser)} <button id="who-change">cambiar</button>` : "";
+  const b = document.getElementById("who-change");
+  if(b) b.onclick = () => { if(view === "actividad") view = "kanban"; showWelcome(); };
+}
+
+// ============================================================================
+// CONVERSACIONES POR FRENTE
+// ----------------------------------------------------------------------------
+// Cualquiera de los cuatro puede escribir en un frente. Desde afuera, la tarjeta muestra
+// quiénes participan (💬 Rafa · Facu) y, si hay mensajes que vos no leíste, un aviso
+// "N nuevos". Los mensajes y las marcas de leído viven en /.netlify/functions/consultas,
+// separados del tablero, así nunca se pisan con un "Guardar".
+// ============================================================================
+const API_CONSULTAS = "/.netlify/functions/consultas";
+const USER_SLUG = {"Rafa":"rafa", "Guille":"guille", "Facu":"facu", "Hernán":"hernan"};
+let mensajes = [];   // todos los mensajes, del más viejo al más nuevo
+let leidos = {};     // usuario -> frenteId -> fecha ISO de la última lectura
+let frenteAbierto = null;
+
+async function loadConsultas(){
+  try{
+    const res = await fetch(API_CONSULTAS, {cache:"no-store"});
+    if(!res.ok) throw new Error("no api");
+    const j = await res.json();
+    mensajes = Array.isArray(j.mensajes) ? j.mensajes : [];
+    leidos = (j.leidos && typeof j.leidos === "object") ? j.leidos : {};
+  } catch(e){ /* sin conexión: se mantiene lo que ya había */ }
+}
+
+function hilo(frenteId){ return mensajes.filter(m => m.frenteId === frenteId); }
+function noLeidos(frenteId, user){
+  if(!user) return [];
+  const visto = (leidos[user] || {})[frenteId] || "";
+  return hilo(frenteId).filter(m => m.user !== user && m.ts > visto);
+}
+function uCls(u){ return `u-${USER_SLUG[u] || "hernan"}`; }
+
+// Fila de la tarjeta: 💬 participantes · cantidad · aviso de nuevos.
+function convRow(c){
+  const h = hilo(c.id);
+  if(!h.length) return "";
+  const participantes = [...new Set(h.map(m => m.user))];
+  const ultimo = h[h.length - 1].user;
+  const nuevos = noLeidos(c.id, currentUser);
+  const autoresNuevos = [...new Set(nuevos.map(m => m.user))].join(", ");
+  return `
+    <div class="conv-row" title="Conversación: ${h.length} mensaje(s). Borde marcado = escribió último.">
+      <span class="ico">💬</span>
+      ${participantes.map(u => `<span class="u-chip ${uCls(u)} ${u === ultimo ? "ultimo" : ""}">${esc(u)}</span>`).join("")}
+      <span class="n">${h.length}</span>
+      ${nuevos.length ? `<span class="nuevo-badge" title="Nuevo de ${esc(autoresNuevos)}">${nuevos.length} nuevo${nuevos.length > 1 ? "s" : ""}</span>` : ""}
+    </div>`;
+}
+
+function hiloHTML(frenteId, idsNuevos){
+  const h = hilo(frenteId);
+  if(!h.length) return `<div class="conv-vacia">Todavía no hay mensajes. Escribí una pregunta o un comentario sobre este frente.</div>`;
+  return h.map(m => `
+    <div class="msg ${uCls(m.user)} ${m.user === currentUser ? "mio" : ""} ${idsNuevos.has(m.id) ? "es-nuevo" : ""}">
+      <span class="quien"><b>${esc(m.user)}</b> · ${fechaHora(m.ts)}${idsNuevos.has(m.id) ? " · <b style='color:var(--red)'>nuevo</b>" : ""}</span>
+      <div class="burbuja">${esc(m.texto)}</div>
+    </div>`).join("");
+}
+
+function convSectionHTML(c, isNew){
+  if(isNew) return `
+    <div class="field">
+      <label>Conversación del frente</label>
+      <div class="conv-box"><div class="conv-vacia" style="padding:0;">La conversación se habilita una vez creado el frente.</div></div>
+    </div>`;
+  const idsNuevos = new Set(noLeidos(c.id, currentUser).map(m => m.id));
+  return `
+    <div class="field">
+      <label>Conversación del frente</label>
+      <div class="conv-box">
+        <div id="conv-lista">${hiloHTML(c.id, idsNuevos)}</div>
+        <div class="conv-input">
+          <textarea id="conv-texto" placeholder="Escribí como ${esc(currentUser)}… (Ctrl+Enter para enviar)"></textarea>
+          <button class="btn-enviar" id="conv-enviar" type="button">Enviar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function scrollHiloAbajo(){
+  const lista = document.getElementById("conv-lista");
+  if(lista) lista.lastElementChild && lista.lastElementChild.scrollIntoView({block:"nearest"});
+}
+
+async function marcarLeido(frenteId){
+  if(!currentUser || !hilo(frenteId).length) return;
+  if(!noLeidos(frenteId, currentUser).length) return;
+  (leidos[currentUser] = leidos[currentUser] || {})[frenteId] = new Date().toISOString();
+  render(); // saca el aviso "nuevo" de la tarjeta que está detrás del modal
+  try{
+    await fetch(API_CONSULTAS, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({tipo:"leido", user:currentUser, frenteId})});
+  } catch(e){}
+}
+
+async function postMensaje(frenteId, texto){
+  const c = data.find(x => x.id === frenteId);
+  const frente = c ? c.frente : "";
+  const res = await fetch(API_CONSULTAS, {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({tipo:"mensaje", user:currentUser, frenteId, frente, texto})});
+  if(!res.ok) throw new Error("send failed");
+  const j = await res.json();
+  mensajes.push(j.mensaje);
+  (leidos[currentUser] = leidos[currentUser] || {})[frenteId] = j.mensaje.ts;
+  logEvent("mensaje", frente, [{campo:"Mensaje", de:"", a:texto}]);
+  return j.mensaje;
+}
+
+async function enviarMensaje(frenteId){
+  const ta = document.getElementById("conv-texto");
+  const btn = document.getElementById("conv-enviar");
+  const texto = ta.value.trim();
+  if(!texto) return;
+  btn.disabled = true; btn.textContent = "Enviando…";
+  try{
+    await postMensaje(frenteId, texto);
+    ta.value = "";
+    document.getElementById("conv-lista").innerHTML = hiloHTML(frenteId, new Set());
+    scrollHiloAbajo();
+    render();
+  } catch(e){
+    alert("No se pudo enviar el mensaje. Revisá la conexión y probá de nuevo.");
+  }
+  btn.disabled = false; btn.textContent = "Enviar";
+}
+
+// Cada minuto (con la pestaña visible) trae mensajes nuevos de los demás.
+async function refrescarConsultas(){
+  if(document.hidden || !currentUser) return;
+  const antes = mensajes.length;
+  await loadConsultas();
+  if(mensajes.length === antes) return;
+  if(frenteAbierto && document.getElementById("conv-lista")){
+    const idsNuevos = new Set(noLeidos(frenteAbierto, currentUser).map(m => m.id));
+    document.getElementById("conv-lista").innerHTML = hiloHTML(frenteAbierto, idsNuevos);
+    scrollHiloAbajo();
+    marcarLeido(frenteAbierto);
+  }
+  render();
+}
+setInterval(refrescarConsultas, 60000);
+document.addEventListener("visibilitychange", refrescarConsultas);
+
+// --- Vista Actividad (solo Hernán) ------------------------------------------
+let feedFiltro = "Todos";
+
+function inicioSemana(d){
+  const r = new Date(d); r.setHours(0,0,0,0);
+  const dow = (r.getDay() + 6) % 7; // lunes = 0
+  r.setDate(r.getDate() - dow);
+  return r;
+}
+
+function renderActividad(){
+  const el = document.getElementById("actividad");
+  if(currentUser !== USUARIO_ADMIN){ el.innerHTML = ""; return; }
+
+  const hace7 = Date.now() - 7 * 86400000;
+  const cards = USUARIOS.map(u=>{
+    const evs = actividad.filter(e => e.user === u);
+    const aperturas = evs.filter(e => e.tipo === "apertura");
+    const cambios = evs.filter(e => e.tipo === "alta" || e.tipo === "edicion");
+    const msgs = mensajes.filter(m => m.user === u);
+    const ap7 = aperturas.filter(e => new Date(e.ts) >= hace7).length;
+    const ca7 = cambios.filter(e => new Date(e.ts) >= hace7).length;
+    const ms7 = msgs.filter(m => new Date(m.ts) >= hace7).length;
+    const ultCambio = evs.filter(e => e.tipo !== "apertura")[0];
+    const ultApertura = aperturas[0];
+    const d = ultCambio ? diasDesde(ultCambio.ts) : null;
+    const semaforo = d === null ? "rojo" : d <= 2 ? "verde" : d <= 7 ? "amarillo" : "rojo";
+    return `
+      <div class="act-user ${semaforo}">
+        <h4>${esc(u)}</h4>
+        <div class="linea"><span>Aperturas (7 d / total)</span><b>${ap7} / ${aperturas.length}</b></div>
+        <div class="linea"><span>Cambios (7 d / total)</span><b>${ca7} / ${cambios.length}</b></div>
+        <div class="linea"><span>Mensajes (7 d / total)</span><b>${ms7} / ${msgs.length}</b></div>
+        <div class="ultimo">
+          Último movimiento: <b>${ultCambio ? haceTxt(ultCambio.ts) : "nunca"}</b><br>
+          Última apertura: ${ultApertura ? haceTxt(ultApertura.ts) : "nunca"}
+        </div>
+      </div>`;
+  }).join("");
+
+  // Señales de uso real del foco: no cuántos clics, sino si el tablero avanza.
+  const delFoco = actividad.filter(e => e.user === USUARIO_FOCO && e.tipo !== "apertura");
+  const todosCambios = delFoco.flatMap(e => e.cambios || []);
+  const fechasCargadas = todosCambios.filter(c => c.campo === "Fecha cierre" && !c.de && c.a).length;
+  const movEstado = todosCambios.filter(c => c.campo === "Estado").length;
+  const relevamientos = todosCambios.filter(c => c.campo === "Relevamiento de campo" && c.a).length;
+  const altas = delFoco.filter(e => e.tipo === "alta").length;
+  const conCierre = data.filter(c => c.fechaCierre).length;
+
+  // Conversaciones: qué espera respuesta del foco y cuánto tarda en contestar.
+  const esperandoFoco = data.filter(c => {
+    const h = hilo(c.id);
+    return h.length && h[h.length - 1].user !== USUARIO_FOCO;
+  });
+  const demoras = [];
+  data.forEach(c => {
+    const h = hilo(c.id);
+    h.forEach((m, i) => {
+      if(m.user === USUARIO_FOCO) return;
+      const resp = h.slice(i + 1).find(x => x.user === USUARIO_FOCO);
+      if(resp) demoras.push(new Date(resp.ts) - new Date(m.ts));
+    });
+  });
+  const durTxt = ms => {
+    const min = Math.round(ms / 60000);
+    if(min < 60) return `${min} min`;
+    const h = ms / 3600000;
+    return h < 48 ? `${Math.round(h)} h` : `${Math.round(h / 24)} d`;
+  };
+  const demoraProm = demoras.length ? durTxt(demoras.reduce((a, b) => a + b, 0) / demoras.length) : "s/d";
+
+  // Cambios por semana (últimas 8) y por persona.
+  const semanas = [];
+  let s0 = inicioSemana(new Date());
+  for(let i = 0; i < 8; i++){ semanas.push(new Date(s0)); s0.setDate(s0.getDate() - 7); }
+  const filasSem = semanas.map(ini=>{
+    const fin = new Date(ini); fin.setDate(fin.getDate() + 7);
+    const celdas = USUARIOS.map(u=>{
+      const n = actividad.filter(e => e.user === u && e.tipo !== "apertura" && new Date(e.ts) >= ini && new Date(e.ts) < fin).length;
+      return `<td class="${n === 0 ? "cero" : n >= 5 ? "alto" : ""}">${n}</td>`;
+    }).join("");
+    return `<tr><td>Sem. ${ini.toLocaleDateString("es-AR", {day:"2-digit", month:"2-digit"})}</td>${celdas}</tr>`;
+  }).join("");
+
+  // Feed de movimientos.
+  const feedEvs = actividad.filter(e => feedFiltro === "Todos" || e.user === feedFiltro).slice(0, 80);
+  const feed = feedEvs.length ? feedEvs.map(e=>{
+    const tipoTxt = e.tipo === "apertura" ? "abrió la app" : e.tipo === "alta" ? "frente nuevo" : e.tipo === "mensaje" ? "💬 mensaje" : "edición";
+    const cambios = (e.cambios || []).map(c=>{
+      const corto = v => v.length > 60 ? v.slice(0, 60) + "…" : v;
+      return `<li><b>${esc(c.campo)}:</b> ${esc(corto(c.de) || "—")} → ${esc(corto(c.a) || "—")}</li>`;
+    }).join("");
+    return `
+      <div class="feed-item">
+        <div class="cab">
+          <span class="cuando">${fechaHora(e.ts)}</span>
+          <span class="quien">${esc(e.user)}</span>
+          <span class="tipo ${e.tipo}">${tipoTxt}</span>
+          ${e.frente ? `<span>${esc(e.frente)}</span>` : ""}
+        </div>
+        ${cambios && e.tipo === "edicion" ? `<ul>${cambios}</ul>` : ""}
+        ${e.tipo === "mensaje" && e.cambios && e.cambios[0] ? `<ul style="list-style:none; padding-left:0;"><li>“${esc(e.cambios[0].a.length > 160 ? e.cambios[0].a.slice(0, 160) + "…" : e.cambios[0].a)}”</li></ul>` : ""}
+      </div>`;
+  }).join("") : `<div class="act-vacio">Sin movimientos registrados todavía.</div>`;
+
+  el.innerHTML = `
+    <div class="act-users">${cards}</div>
+    <div class="act-grid">
+      <div class="dash-card">
+        <h3>Señales de uso real — ${esc(USUARIO_FOCO)}</h3>
+        <div class="senales">
+          <div class="senal"><div class="num">${fechasCargadas}</div><div class="lbl">Fechas de cierre cargadas</div></div>
+          <div class="senal"><div class="num">${movEstado}</div><div class="lbl">Frentes movidos de columna</div></div>
+          <div class="senal"><div class="num">${relevamientos}</div><div class="lbl">Relevamientos escritos o actualizados</div></div>
+          <div class="senal"><div class="num">${altas}</div><div class="lbl">Frentes nuevos creados</div></div>
+          <div class="senal"><div class="num" style="${esperandoFoco.length ? "color:var(--red);" : ""}">${esperandoFoco.length}</div><div class="lbl">Conversaciones esperando su respuesta</div></div>
+          <div class="senal"><div class="num">${demoraProm}</div><div class="lbl">Tiempo promedio de respuesta</div></div>
+        </div>
+        ${esperandoFoco.length ? `<div style="font-size:.74rem; color:var(--ink-soft); margin-top:10px;">Esperando: ${esperandoFoco.map(c => esc(c.frente)).join(" · ")}</div>` : ""}
+        <div style="font-size:.76rem; color:var(--ink-soft); margin-top:12px;">
+          Tablero hoy: <b style="color:var(--ink);">${conCierre} de ${data.length}</b> frentes con fecha de cierre real.
+        </div>
+      </div>
+      <div class="dash-card">
+        <h3>Movimientos por semana (cambios + mensajes)</h3>
+        <table class="tabla-sem">
+          <tr><th></th>${USUARIOS.map(u => `<th>${esc(u)}</th>`).join("")}</tr>
+          ${filasSem}
+        </table>
+      </div>
+    </div>
+    <div class="dash-card">
+      <h3>Últimos movimientos</h3>
+      <div class="feed-filtros">
+        ${["Todos", ...USUARIOS].map(u => `<button class="${u === feedFiltro ? "active" : ""}" data-f="${esc(u)}">${esc(u)}</button>`).join("")}
+      </div>
+      ${feed}
+    </div>`;
+  el.querySelectorAll(".feed-filtros button").forEach(b => b.onclick = () => { feedFiltro = b.dataset.f; renderActividad(); });
+}
+
 function score(c){
   const vals = [c.fh, c.fe, c.ie].filter(v => v !== "" && v !== null && v !== undefined);
   if(vals.length === 0) return null;
@@ -508,11 +1084,18 @@ function renderToolbar(){
 
   const toggle = document.createElement("div");
   toggle.className = "view-toggle";
-  ["kanban","gantt","dashboard"].forEach(v=>{
+  const vistas = ["kanban","gantt","dashboard"];
+  if(currentUser === USUARIO_ADMIN) vistas.push("actividad");
+  const nombreVista = {kanban:"Kanban", gantt:"Gantt", dashboard:"Dashboard", actividad:"Actividad"};
+  vistas.forEach(v=>{
     const b = document.createElement("button");
-    b.textContent = v === "kanban" ? "Kanban" : v === "gantt" ? "Gantt" : "Dashboard";
+    b.textContent = nombreVista[v];
     if(v === view) b.classList.add("active");
-    b.onclick = () => { view = v; render(); };
+    b.onclick = async () => {
+      view = v;
+      if(v === "actividad"){ await loadActividad(); } // trae lo último que cargaron los demás
+      render();
+    };
     toggle.appendChild(b);
   });
   tb.appendChild(toggle);
@@ -576,9 +1159,17 @@ function render(){
   const boardEl = document.getElementById("board");
   const dashEl = document.getElementById("dash");
   const ganttEl = document.getElementById("gantt");
+  const actEl = document.getElementById("actividad");
   boardEl.style.display = "none";
   dashEl.style.display = "none";
   ganttEl.style.display = "none";
+  actEl.style.display = "none";
+  if(view === "actividad" && currentUser !== USUARIO_ADMIN) view = "kanban";
+  if(view === "actividad"){
+    actEl.style.display = "block";
+    renderActividad();
+    return;
+  }
   if(view === "dashboard"){
     dashEl.style.display = "grid";
     renderDashboard();
@@ -606,7 +1197,7 @@ function render(){
       const s = score(c);
       const hz = horizonteCalc(c);
       const el = document.createElement("div");
-      el.className = "card";
+      el.className = "card" + (noLeidos(c.id, currentUser).length ? " con-nuevo" : "");
       el.innerHTML = `
         <span class="cat-tag ${CATS[c.cat].cls}">${CATS[c.cat].short}</span>
         <span class="hz-badge ${hz.cls}" title="Calculado desde la Fecha de cierre. Tamiz original: ${hzTamizLabel(c.horizonteTamiz)}">${hz.label}</span>
@@ -617,7 +1208,8 @@ function render(){
           <span class="suc-chips">${adhesionChips(c)}</span>
           <span class="score ${scoreClass(s)}">${s===null? "s/d" : s.toFixed(1)}</span>
         </div>
-        ${(c.fechaInicio || c.fechaCierre) ? `<div class="fechas">${c.fechaInicio || "s/i"} → ${c.fechaCierre || "s/c"}</div>` : ""}`;
+        ${(c.fechaInicio || c.fechaCierre) ? `<div class="fechas">${c.fechaInicio || "s/i"} → ${c.fechaCierre || "s/c"}</div>` : ""}
+        ${convRow(c)}`;
       el.onclick = () => openModal(c.id);
       body.appendChild(el);
     });
@@ -947,6 +1539,8 @@ function openModal(id){
       <textarea id="f-detalle" placeholder="Qué se va a hacer, con quién, en qué plazo...">${c.detalle||""}</textarea>
     </div>
 
+    ${convSectionHTML(c, isNew)}
+
     <div class="modal-actions">
       <span class="score-live" id="score-live"></span>
       <button class="btn-primary" onclick="saveModal('${isNew?'':c.id}')">${isNew?'Crear':'Guardar'}</button>
@@ -960,6 +1554,18 @@ function openModal(id){
   document.getElementById("f-estado").addEventListener("change", (e)=>{
     document.getElementById("etapa-wrap").style.display = e.target.value === "Acción" ? "" : "none";
   });
+  frenteAbierto = isNew ? null : c.id;
+  if(!isNew){
+    document.getElementById("conv-enviar").onclick = () => enviarMensaje(c.id);
+    document.getElementById("conv-texto").addEventListener("keydown", (e)=>{
+      if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); enviarMensaje(c.id); }
+    });
+    // Si llegó con mensajes nuevos, abre directo en la conversación.
+    if(noLeidos(c.id, currentUser).length){
+      setTimeout(() => document.getElementById("conv-lista").scrollIntoView({block:"start"}), 50);
+    }
+    marcarLeido(c.id);
+  }
 }
 
 function updateLiveHorizonte(){
@@ -978,7 +1584,7 @@ function updateLiveScore(){
   document.getElementById("score-live").textContent = s===null ? "Score: s/d" : `Score: ${s.toFixed(1)}`;
 }
 
-function closeModal(){ document.getElementById("overlay").classList.remove("show"); }
+function closeModal(){ frenteAbierto = null; document.getElementById("overlay").classList.remove("show"); }
 
 function saveModal(id){
   const estado = document.getElementById("f-estado").value;
@@ -1003,14 +1609,24 @@ function saveModal(id){
     esHito: document.getElementById("f-hito").checked,
   };
   if(!vals.frente){ alert("Ponele un nombre al frente."); return; }
+  const convTa = document.getElementById("conv-texto");
+  const textoPendiente = (id && convTa) ? convTa.value.trim() : "";
   if(id){
-    Object.assign(data.find(x=>x.id===id), vals);
+    const actual = data.find(x=>x.id===id);
+    const cambios = diffCard(actual, vals);
+    Object.assign(actual, vals);
+    if(cambios.length) logEvent("edicion", vals.frente, cambios);
   } else {
     data.push(card(vals.cat, vals.frente, vals.estado, vals.etapaAccion, vals.releva, vals.fh, vals.fe, vals.ie, vals.adhesion, vals.validacion, vals.tipoAccion, vals.detalle, vals.horizonteTamiz, vals.fechaInicio, vals.fechaCierre, vals.esHito));
+    logEvent("alta", vals.frente);
   }
   closeModal();
   render();
   syncBoard();
+  if(textoPendiente){
+    postMensaje(id, textoPendiente).then(render).catch(() =>
+      alert("El frente se guardó, pero el mensaje no se pudo enviar. Revisá la conexión y escribilo de nuevo."));
+  }
 }
 
 document.getElementById("overlay").addEventListener("click", (e)=>{
