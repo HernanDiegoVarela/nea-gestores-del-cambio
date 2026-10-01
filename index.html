@@ -362,6 +362,11 @@
     background:var(--amber); color:var(--graphite); border:none; padding:9px 14px; border-radius:var(--radius);
     font-family:inherit; font-weight:700; cursor:pointer; font-size:.8rem; white-space:nowrap;
   }
+  .msg-borrar{
+    background:none; border:none; padding:0; font-family:inherit; font-size:.68rem;
+    color:var(--ink-soft); text-decoration:underline; cursor:pointer;
+  }
+  .msg-borrar:hover{ color:var(--red); }
   .btn-enviar:disabled{ opacity:.5; cursor:default; }
   @media (max-width:800px){
     .act-users{ grid-template-columns:1fr 1fr; }
@@ -723,7 +728,7 @@ function showWelcome(){
 
 function chooseUser(u){
   // Lo anterior de esta persona, ANTES de registrar la apertura de hoy.
-  const misCambios = actividad.filter(e => e.user === u && e.tipo !== "apertura");
+  const misCambios = actividad.filter(eventoVisible).filter(e => e.user === u && e.tipo !== "apertura");
   currentUser = u;
   lsSet(LS_USUARIO, u);
   logEvent("apertura");
@@ -826,7 +831,7 @@ function hiloHTML(frenteId, idsNuevos){
   if(!h.length) return `<div class="conv-vacia">Todavía no hay mensajes. Escribí una pregunta o un comentario sobre este frente.</div>`;
   return h.map(m => `
     <div class="msg ${uCls(m.user)} ${m.user === currentUser ? "mio" : ""} ${idsNuevos.has(m.id) ? "es-nuevo" : ""}">
-      <span class="quien"><b>${esc(m.user)}</b> · ${fechaHora(m.ts)}${idsNuevos.has(m.id) ? " · <b style='color:var(--red)'>nuevo</b>" : ""}</span>
+      <span class="quien"><b>${esc(m.user)}</b> · ${fechaHora(m.ts)}${idsNuevos.has(m.id) ? " · <b style='color:var(--red)'>nuevo</b>" : ""}${puedeBorrar(m) ? ` · <button class="msg-borrar" data-id="${esc(m.id)}" type="button">borrar</button>` : ""}</span>
       <div class="burbuja">${esc(m.texto)}</div>
     </div>`).join("");
 }
@@ -876,8 +881,41 @@ async function postMensaje(frenteId, texto){
   const j = await res.json();
   mensajes.push(j.mensaje);
   (leidos[currentUser] = leidos[currentUser] || {})[frenteId] = j.mensaje.ts;
-  logEvent("mensaje", frente, [{campo:"Mensaje", de:"", a:texto}]);
+  // El servidor ya lo anotó en la bitácora; acá solo se suma a la vista local.
+  actividad.unshift({ts: j.mensaje.ts, user: currentUser, tipo:"mensaje", frente, msgId: j.mensaje.id,
+    cambios:[{campo:"Mensaje", de:"", a:texto}]});
   return j.mensaje;
+}
+
+function puedeBorrar(m){ return currentUser && (m.user === currentUser || currentUser === USUARIO_ADMIN); }
+
+async function borrarMensaje(msgId){
+  const m = mensajes.find(x => x.id === msgId);
+  if(!m || !puedeBorrar(m)) return;
+  if(!confirm("¿Borrar este mensaje? Se elimina por completo y no se puede recuperar.")) return;
+  try{
+    const res = await fetch(API_CONSULTAS, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({tipo:"borrar", user:currentUser, id:msgId})});
+    if(!res.ok) throw new Error("delete failed");
+  } catch(e){
+    alert("No se pudo borrar el mensaje. Revisá la conexión y probá de nuevo.");
+    return;
+  }
+  mensajes = mensajes.filter(x => x.id !== msgId);
+  actividad = actividad.filter(e => e.msgId !== msgId);
+  if(frenteAbierto && document.getElementById("conv-lista")){
+    document.getElementById("conv-lista").innerHTML = hiloHTML(frenteAbierto, new Set());
+  }
+  render();
+}
+
+// Un evento "mensaje" de la bitácora solo se muestra si el mensaje sigue existiendo:
+// así un mensaje borrado no deja rastro en Actividad.
+function eventoVisible(e){
+  if(e.tipo !== "mensaje") return true;
+  if(e.msgId) return mensajes.some(m => m.id === e.msgId);
+  const texto = e.cambios && e.cambios[0] ? e.cambios[0].a : "";
+  return mensajes.some(m => m.user === e.user && m.frente === e.frente && m.texto.slice(0, 300) === texto);
 }
 
 async function enviarMensaje(frenteId){
@@ -931,7 +969,7 @@ function renderActividad(){
 
   const hace7 = Date.now() - 7 * 86400000;
   const cards = USUARIOS.map(u=>{
-    const evs = actividad.filter(e => e.user === u);
+    const evs = actividad.filter(eventoVisible).filter(e => e.user === u);
     const aperturas = evs.filter(e => e.tipo === "apertura");
     const cambios = evs.filter(e => e.tipo === "alta" || e.tipo === "edicion");
     const msgs = mensajes.filter(m => m.user === u);
@@ -956,7 +994,7 @@ function renderActividad(){
   }).join("");
 
   // Señales de uso real del foco: no cuántos clics, sino si el tablero avanza.
-  const delFoco = actividad.filter(e => e.user === USUARIO_FOCO && e.tipo !== "apertura");
+  const delFoco = actividad.filter(eventoVisible).filter(e => e.user === USUARIO_FOCO && e.tipo !== "apertura");
   const todosCambios = delFoco.flatMap(e => e.cambios || []);
   const fechasCargadas = todosCambios.filter(c => c.campo === "Fecha cierre" && !c.de && c.a).length;
   const movEstado = todosCambios.filter(c => c.campo === "Estado").length;
@@ -993,14 +1031,14 @@ function renderActividad(){
   const filasSem = semanas.map(ini=>{
     const fin = new Date(ini); fin.setDate(fin.getDate() + 7);
     const celdas = USUARIOS.map(u=>{
-      const n = actividad.filter(e => e.user === u && e.tipo !== "apertura" && new Date(e.ts) >= ini && new Date(e.ts) < fin).length;
+      const n = actividad.filter(eventoVisible).filter(e => e.user === u && e.tipo !== "apertura" && new Date(e.ts) >= ini && new Date(e.ts) < fin).length;
       return `<td class="${n === 0 ? "cero" : n >= 5 ? "alto" : ""}">${n}</td>`;
     }).join("");
     return `<tr><td>Sem. ${ini.toLocaleDateString("es-AR", {day:"2-digit", month:"2-digit"})}</td>${celdas}</tr>`;
   }).join("");
 
   // Feed de movimientos.
-  const feedEvs = actividad.filter(e => feedFiltro === "Todos" || e.user === feedFiltro).slice(0, 80);
+  const feedEvs = actividad.filter(eventoVisible).filter(e => feedFiltro === "Todos" || e.user === feedFiltro).slice(0, 80);
   const feed = feedEvs.length ? feedEvs.map(e=>{
     const tipoTxt = e.tipo === "apertura" ? "abrió la app" : e.tipo === "alta" ? "frente nuevo" : e.tipo === "mensaje" ? "💬 mensaje" : "edición";
     const cambios = (e.cambios || []).map(c=>{
@@ -1631,6 +1669,10 @@ function saveModal(id){
 
 document.getElementById("overlay").addEventListener("click", (e)=>{
   if(e.target.id === "overlay") closeModal();
+});
+document.getElementById("modal").addEventListener("click", (e)=>{
+  const b = e.target.closest(".msg-borrar");
+  if(b) borrarMensaje(b.dataset.id);
 });
 
 loadBoard();
