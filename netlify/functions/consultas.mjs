@@ -6,12 +6,15 @@
 //   GET   -> { mensajes: [...], leidos: { <usuario>: { <frenteId>: <iso> } } }
 //   POST  {tipo:"mensaje", user, frenteId, frente, texto} -> guarda un mensaje
 //   POST  {tipo:"leido",   user, frenteId}                -> marca la conversación como leída
+//   POST  {tipo:"borrar",  user, id}                      -> borra el mensaje sin dejar rastro
 import { getStore } from "@netlify/blobs";
 
 // Slug ASCII para usar en las claves (Hernán -> hernan).
 const USUARIOS = { Rafa: "rafa", Guille: "guille", Facu: "facu", "Hernán": "hernan" };
 const SLUG_A_USUARIO = Object.fromEntries(Object.entries(USUARIOS).map(([u, s]) => [s, u]));
 const ID_OK = /^[A-Za-z0-9-]{1,64}$/;
+const MSG_ID_OK = /^\d{13}_[a-z0-9]{1,8}$/;
+const ADMIN = "Hernán";
 
 const txt = (v, max) => String(v ?? "").slice(0, max);
 
@@ -51,11 +54,28 @@ export default async (req) => {
       return new Response("JSON inválido", { status: 400 });
     }
     const slug = USUARIOS[body.user];
-    if (!slug || !ID_OK.test(String(body.frenteId || ""))) {
-      return new Response("Datos inválidos", { status: 400 });
-    }
+    if (!slug) return new Response("Datos inválidos", { status: 400 });
     const now = Date.now();
     const ts = new Date(now).toISOString();
+
+    // Borrado limpio: se elimina el mensaje y su registro en la bitácora de actividad,
+    // sin dejar marca. Cada uno borra lo suyo; Hernán puede borrar cualquiera.
+    if (body.tipo === "borrar") {
+      const id = String(body.id || "");
+      if (!MSG_ID_OK.test(id)) return new Response("Datos inválidos", { status: 400 });
+      const mensaje = await store.get(`m/${id}`, { type: "json" });
+      if (!mensaje) return Response.json({ ok: true }); // ya no existe
+      if (mensaje.user !== body.user && body.user !== ADMIN) {
+        return new Response("Solo podés borrar tus propios mensajes", { status: 403 });
+      }
+      await store.delete(`m/${id}`);
+      await getStore("actividad").delete(`${id}_m`);
+      return Response.json({ ok: true });
+    }
+
+    if (!ID_OK.test(String(body.frenteId || ""))) {
+      return new Response("Datos inválidos", { status: 400 });
+    }
 
     if (body.tipo === "mensaje") {
       const texto = txt(body.texto, 2000).trim();
@@ -65,6 +85,12 @@ export default async (req) => {
       await store.setJSON(`m/${id}`, mensaje);
       // Quien escribe, obviamente leyó la conversación.
       await store.set(`l/${slug}/${body.frenteId}`, ts);
+      // Registro en la bitácora de actividad con una clave atada al mensaje, para poder
+      // borrarlo junto con él. Empieza con el mismo timestamp, así ordena igual que el resto.
+      await getStore("actividad").setJSON(`${id}_m`, {
+        ts, user: body.user, tipo: "mensaje", frente: mensaje.frente, msgId: id,
+        cambios: [{ campo: "Mensaje", de: "", a: txt(texto, 300) }],
+      });
       return Response.json({ ok: true, mensaje });
     }
 
