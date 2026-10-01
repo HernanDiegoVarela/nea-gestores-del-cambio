@@ -20,7 +20,9 @@
     --ink: #1B2027;
     --ink-soft: #5B6270;
     --red: #C1503F;
+    --red-bg: #F5E1DD;
     --yellow: #D6A226;
+    --amber-bg: #F7E8CC;
     --green: #4C8A57;
     --radius: 3px;
   }
@@ -56,10 +58,90 @@
   .toolbar .spacer{ margin-left:auto; display:flex; gap:8px; }
   .toolbar .add-btn{ background:var(--amber); color:var(--graphite); border-color:var(--amber); font-weight:600; }
   .toolbar .add-btn:hover{ background:var(--amber-deep); }
+  .toolbar .view-toggle{ display:flex; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+  .toolbar .view-toggle button{ border:none; border-radius:0; }
+  .toolbar .view-toggle button.active{ background:var(--graphite); color:#fff; }
+  .toolbar .csv-btn{ background:#fff; color:var(--interno); border-color:var(--interno); font-weight:600; }
+  .toolbar .csv-btn:hover{ background:var(--interno); color:#fff; }
+
+  /* Dashboard */
+  .dash{ display:grid; grid-template-columns:2fr 1fr; gap:16px; height:100%; overflow-y:auto; padding-bottom:12px; }
+  .dash-col{ display:flex; flex-direction:column; gap:14px; min-height:0; }
+  .dash-card{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:16px 18px; }
+  .dash-card h3{ margin:0 0 12px; font-size:.82rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; }
+  .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .kpi{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:14px; text-align:center; }
+  .kpi .num{ font-family:'IBM Plex Mono', monospace; font-size:1.6rem; font-weight:700; color:var(--graphite); }
+  .kpi .lbl{ font-size:.7rem; color:var(--ink-soft); margin-top:2px; }
+  .bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:.8rem; }
+  .bar-row .lbl{ width:170px; flex-shrink:0; color:var(--ink-soft); }
+  .bar-track{ flex:1; background:var(--paper); border-radius:8px; height:16px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:8px; }
+  .bar-row .val{ width:34px; text-align:right; font-family:'IBM Plex Mono', monospace; font-size:.75rem; color:var(--ink-soft); flex-shrink:0; }
   .toolbar .reset-btn{ background:#fff; color:var(--red); border-color:var(--red); font-weight:600; }
   .toolbar .reset-btn:hover{ background:var(--red); color:#fff; }
   .toolbar .pdf-btn{ background:#fff; color:var(--graphite); border-color:var(--graphite); font-weight:600; }
   .toolbar .pdf-btn:hover{ background:var(--graphite); color:#fff; }
+
+  /* Gantt */
+  .gantt{ height:100%; overflow:auto; }
+  .gantt-scroll{ min-width:900px; }
+  .gantt-months{ display:flex; position:sticky; top:0; background:var(--paper); z-index:2; height:22px; }
+  .gantt-month{ flex-shrink:0; font-size:.68rem; color:var(--ink-soft); font-weight:600; line-height:22px; padding-left:6px; border-left:1px solid var(--line); overflow:hidden; white-space:nowrap; }
+  .gantt-days{ display:flex; position:sticky; top:22px; background:var(--paper); z-index:2; height:16px; border-bottom:2px solid var(--line); }
+  .gantt-day{ flex-shrink:0; font-size:.6rem; color:var(--ink-soft); text-align:center; line-height:16px; border-left:1px solid var(--line); }
+  .gantt-day-weekend{ background:rgba(27,32,39,.05); }
+  .gantt-day-first{ font-weight:700; color:var(--ink); }
+  .gantt-body{ position:relative; }
+  .gantt-row{ display:flex; align-items:center; height:38px; border-bottom:1px solid var(--line); cursor:pointer; transition:.1s; }
+  .gantt-row:hover{ background:#fff; }
+  .gantt-row:hover .gantt-row-label{ background:#fff; }
+  .gantt-row-label{
+    position:sticky; left:0; width:260px; flex-shrink:0; background:var(--paper);
+    font-size:.76rem; padding-right:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    display:flex; align-items:center; gap:6px; z-index:1;
+  }
+  .gantt-track{ position:relative; flex:1; height:100%; }
+  .gantt-bar{
+    position:absolute; top:9px; height:20px; border-radius:3px;
+    font-size:.66rem; font-weight:600; display:flex; align-items:center; padding:0 6px; white-space:nowrap; overflow:hidden;
+  }
+  .gantt-bar-h1{ background:var(--red); color:#fff; }
+  .gantt-bar-h2{ background:var(--amber); color:var(--graphite); }
+  .gantt-bar-h3{ background:var(--interno); color:#fff; }
+  .gantt-bar-pending{ background:var(--ink-soft); color:#fff; }
+  .gantt-bar-tentativo{ border:2px dashed; }
+  .gantt-bar-tentativo.gantt-bar-h1{ background:var(--red-bg); color:var(--red); border-color:var(--red); }
+  .gantt-bar-tentativo.gantt-bar-h2{ background:var(--amber-bg); color:var(--amber-deep); border-color:var(--amber-deep); }
+  .gantt-bar-tentativo.gantt-bar-h3{ background:var(--interno-bg); color:var(--interno); border-color:var(--interno); }
+  .gantt-bar-tentativo.gantt-bar-pending{ background:var(--line); color:var(--ink-soft); border-color:var(--ink-soft); }
+  .gantt-legend{
+    display:flex; gap:18px; flex-wrap:wrap; padding:8px 4px 10px; font-size:.72rem; color:var(--ink-soft);
+    position:sticky; left:0;
+  }
+  .gantt-swatch{ display:inline-block; width:14px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+  .gantt-swatch-h1{ background:var(--red); }
+  .gantt-swatch-h2{ background:var(--amber); }
+  .gantt-swatch-h3{ background:var(--interno); }
+  .gantt-swatch-tent{ background:var(--amber-bg); border:2px dashed var(--amber-deep); height:6px; }
+  .gantt-swatch-hito{ background:var(--amber); }
+  .gantt-hito{
+    position:absolute; top:6px; width:18px; height:18px; background:var(--amber);
+    border:2px solid var(--graphite); transform:translateX(-9px) rotate(45deg);
+  }
+  .gantt-hito-label{
+    position:absolute; top:2px; font-size:.62rem; font-weight:600; color:var(--graphite);
+    white-space:nowrap; transform:translateX(14px);
+  }
+  .gantt-today{ position:absolute; top:0; bottom:0; width:2px; background:var(--red); z-index:1; }
+  .gantt-today-lbl{ position:absolute; top:-16px; font-size:.62rem; color:var(--red); font-weight:600; transform:translateX(-50%); }
+  .gantt-kickoff{ position:absolute; top:0; bottom:0; width:2px; background:var(--adelante); z-index:1; border-left:2px dashed var(--adelante); background:none; }
+  .gantt-kickoff-lbl{ position:absolute; top:-16px; font-size:.62rem; color:var(--adelante); font-weight:600; transform:translateX(-50%); white-space:nowrap; }
+  .gantt-empty{ padding:40px 20px; color:var(--ink-soft); font-size:.85rem; text-align:center; }
+  .gantt-pending{ padding:14px 4px 4px; }
+  .gantt-pending h4{ font-size:.78rem; color:var(--ink-soft); margin:0 0 8px; text-transform:uppercase; letter-spacing:.03em; }
+  .gantt-pending ul{ margin:0; padding-left:18px; font-size:.8rem; color:var(--ink); }
+  .gantt-pending li{ margin-bottom:4px; }
 
   main{ flex:1; min-height:0; padding:14px 28px 16px; }
 
@@ -104,6 +186,34 @@
   .score-green{ background:var(--green); }
   .score-none{ background:var(--line); color:var(--ink-soft); }
   .card .etapa{ font-size:.64rem; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; }
+  .card .fechas{ font-size:.64rem; color:var(--ink-soft); margin-top:4px; font-family:'IBM Plex Mono', monospace; }
+  .hz-badge{
+    display:inline-block; font-size:.62rem; font-weight:700; padding:1px 7px;
+    border-radius:10px; margin-bottom:5px; margin-left:4px; font-family:'IBM Plex Mono', monospace;
+  }
+  .hz-urgente{ background:var(--red); color:#fff; }
+  .hz-h1{ background:var(--amber); color:var(--graphite); }
+  .hz-h2{ background:var(--yellow); color:var(--graphite); }
+  .hz-h3{ background:var(--interno-bg); color:var(--interno); }
+  .hz-none{ background:var(--line); color:var(--ink-soft); }
+  .hz-pending{ background:#fff; color:var(--red); border:1px dashed var(--red); }
+  .hito-badge{
+    display:inline-block; font-size:.62rem; font-weight:700; padding:1px 7px;
+    border-radius:10px; margin-bottom:5px; margin-left:4px; background:var(--graphite); color:var(--amber);
+  }
+  .suc-chips{ display:flex; gap:3px; }
+  .suc-chip{
+    width:16px; height:16px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace; font-size:.6rem; font-weight:600; color:#fff;
+  }
+  .chip-si{ background:var(--green); }
+  .chip-no{ background:var(--red); }
+  .chip-def{ background:var(--yellow); color:var(--graphite); }
+  .sucursales-grid{ display:flex; flex-direction:column; gap:8px; }
+  .suc-row{ display:grid; grid-template-columns:90px 1fr; align-items:center; gap:10px; }
+  .suc-row .suc-name{ font-size:.78rem; color:var(--ink-soft); font-weight:500; }
+  .suc-row.suc-futura .suc-name{ font-style:italic; }
+  .suc-row.suc-futura select{ background:#F4F5F1; }
 
   .overlay{
     position:fixed; inset:0; background:rgba(27,32,39,.55); display:none;
@@ -137,8 +247,129 @@
   .btn-close{ background:none; border:none; color:var(--ink-soft); font-size:1.3rem; cursor:pointer; line-height:1; }
   .modal-top{ display:flex; justify-content:space-between; align-items:flex-start; }
 
+  /* Bienvenida: ¿quién quiere trabajar hoy? */
+  .welcome{
+    position:fixed; inset:0; background:rgba(27,32,39,.82); display:none;
+    align-items:center; justify-content:center; z-index:60; padding:20px;
+  }
+  .welcome.show{ display:flex; }
+  .welcome-box{
+    background:#fff; width:100%; max-width:460px; border-radius:4px; padding:28px 28px 24px;
+    border-top:4px solid var(--amber);
+  }
+  .welcome-box h2{ margin:0 0 4px; font-size:1.35rem; }
+  .welcome-box .sub{ color:var(--ink-soft); font-size:.84rem; margin-bottom:18px; }
+  .who-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .who-btn{
+    border:2px solid var(--line); background:#fff; color:var(--graphite); border-radius:4px;
+    padding:16px 10px; font-family:inherit; font-size:1rem; font-weight:700; cursor:pointer; transition:.15s;
+  }
+  .who-btn:hover{ border-color:var(--graphite); }
+  .who-btn.last{ border-color:var(--amber); background:var(--amber-bg); }
+  .who-btn .hint{ display:block; font-size:.66rem; font-weight:500; color:var(--amber-deep); margin-top:3px; }
+  .nudges{ list-style:none; padding:0; margin:0 0 20px; }
+  .nudges li{
+    font-size:.88rem; padding:10px 12px; border-left:3px solid var(--line); background:var(--paper);
+    margin-bottom:8px; line-height:1.4;
+  }
+  .nudges li.alerta{ border-left-color:var(--red); }
+  .nudges li.ok{ border-left-color:var(--green); }
+  .nudges li.aviso{ border-left-color:var(--amber); }
+  .who-pill{
+    font-family:'IBM Plex Mono', monospace; font-size:.7rem; color:#fff; margin-bottom:4px;
+  }
+  .who-pill button{
+    background:none; border:none; color:#B7BDC8; text-decoration:underline; cursor:pointer;
+    font-family:inherit; font-size:.66rem; padding:0 0 0 6px;
+  }
+
+  /* Vista Actividad */
+  .actividad{ height:100%; overflow-y:auto; padding-bottom:12px; }
+  .act-users{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+  .act-user{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:14px; border-top:4px solid var(--line); }
+  .act-user.verde{ border-top-color:var(--green); }
+  .act-user.amarillo{ border-top-color:var(--yellow); }
+  .act-user.rojo{ border-top-color:var(--red); }
+  .act-user h4{ margin:0 0 8px; font-size:1rem; }
+  .act-user .linea{ display:flex; justify-content:space-between; font-size:.76rem; color:var(--ink-soft); margin-bottom:3px; }
+  .act-user .linea b{ font-family:'IBM Plex Mono', monospace; color:var(--ink); white-space:nowrap; padding-left:6px; }
+  .act-user .ultimo{ font-size:.72rem; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); color:var(--ink-soft); }
+  .act-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .senales{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .senal{ background:var(--paper); border-radius:4px; padding:10px 12px; }
+  .senal .num{ font-family:'IBM Plex Mono', monospace; font-size:1.3rem; font-weight:700; }
+  .senal .lbl{ font-size:.72rem; color:var(--ink-soft); }
+  .tabla-sem{ width:100%; border-collapse:collapse; font-size:.78rem; }
+  .tabla-sem th, .tabla-sem td{ padding:5px 6px; border-bottom:1px solid var(--line); text-align:center; }
+  .tabla-sem th:first-child, .tabla-sem td:first-child{ text-align:left; color:var(--ink-soft); }
+  .tabla-sem td.cero{ color:var(--line); }
+  .tabla-sem td.alto{ font-weight:700; }
+  .feed-filtros{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .feed-filtros button{
+    border:1px solid var(--line); background:#fff; color:var(--ink-soft); padding:4px 10px; border-radius:var(--radius);
+    font-size:.74rem; cursor:pointer; font-family:inherit;
+  }
+  .feed-filtros button.active{ background:var(--graphite); color:#fff; border-color:var(--graphite); }
+  .feed-item{ padding:9px 0; border-bottom:1px solid var(--line); font-size:.8rem; }
+  .feed-item .cab{ display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
+  .feed-item .cuando{ font-family:'IBM Plex Mono', monospace; font-size:.7rem; color:var(--ink-soft); }
+  .feed-item .quien{ font-weight:700; }
+  .feed-item .tipo{ font-size:.66rem; font-weight:600; padding:1px 7px; border-radius:10px; background:var(--line); color:var(--ink-soft); }
+  .feed-item .tipo.alta{ background:var(--amber-bg); color:var(--amber-deep); }
+  .feed-item .tipo.edicion{ background:var(--adelante-bg); color:var(--adelante); }
+  .feed-item .tipo.mensaje{ background:var(--interno-bg); color:var(--interno); }
+  .feed-item ul{ margin:4px 0 0; padding-left:18px; color:var(--ink-soft); font-size:.74rem; }
+  .feed-item ul b{ color:var(--ink); font-weight:600; }
+  .act-vacio{ padding:30px; text-align:center; color:var(--ink-soft); font-size:.85rem; }
+
+  /* Conversaciones por frente */
+  .u-rafa{ --u:#3C6E9C; --u-bg:#E7EEF5; }
+  .u-guille{ --u:#9C5A3C; --u-bg:#F5E9E1; }
+  .u-facu{ --u:#4F7A4A; --u-bg:#E9F0E4; }
+  .u-hernan{ --u:#1B2027; --u-bg:#F7E8CC; }
+  .conv-row{
+    display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-top:7px; padding-top:6px;
+    border-top:1px dashed var(--line); font-size:.66rem;
+  }
+  .conv-row .ico{ font-size:.75rem; margin-right:1px; }
+  .u-chip{
+    display:inline-block; font-size:.64rem; font-weight:600; padding:1px 7px; border-radius:10px;
+    background:var(--u-bg); color:var(--u); border:1px solid transparent;
+  }
+  .u-chip.ultimo{ border-color:var(--u); }
+  .conv-row .n{ font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); margin-left:2px; }
+  .nuevo-badge{
+    font-size:.6rem; font-weight:700; padding:1px 7px; border-radius:10px;
+    background:var(--red); color:#fff; margin-left:auto; letter-spacing:.02em;
+  }
+  .card.con-nuevo{ border-color:var(--red); box-shadow:0 0 0 1px var(--red-bg); }
+
+  .conv-box{ background:var(--paper); border:1px solid var(--line); border-radius:4px; padding:12px; }
+  .conv-vacia{ font-size:.8rem; color:var(--ink-soft); padding:4px 0 10px; }
+  .msg{ display:flex; flex-direction:column; margin-bottom:10px; max-width:88%; }
+  .msg.mio{ margin-left:auto; align-items:flex-end; }
+  .msg .burbuja{
+    background:#fff; border:1px solid var(--line); border-left:3px solid var(--u);
+    border-radius:4px; padding:7px 10px; font-size:.84rem; line-height:1.4; white-space:pre-wrap; word-break:break-word;
+  }
+  .msg.mio .burbuja{ border-left:1px solid var(--line); border-right:3px solid var(--u); background:var(--u-bg); }
+  .msg .quien{ font-size:.68rem; color:var(--ink-soft); margin-bottom:2px; }
+  .msg .quien b{ color:var(--u); }
+  .msg.es-nuevo .burbuja{ box-shadow:0 0 0 2px var(--red-bg); }
+  .conv-input{ display:flex; gap:8px; align-items:flex-end; margin-top:4px; }
+  .conv-input textarea{ min-height:44px !important; flex:1; }
+  .btn-enviar{
+    background:var(--amber); color:var(--graphite); border:none; padding:9px 14px; border-radius:var(--radius);
+    font-family:inherit; font-weight:700; cursor:pointer; font-size:.8rem; white-space:nowrap;
+  }
+  .btn-enviar:disabled{ opacity:.5; cursor:default; }
+  @media (max-width:800px){
+    .act-users{ grid-template-columns:1fr 1fr; }
+    .act-grid{ grid-template-columns:1fr; }
+  }
+
   @media print{
-    .toolbar, .overlay{ display:none !important; }
+    .toolbar, .overlay, .welcome{ display:none !important; }
     body{ height:auto; overflow:visible; display:block; }
     main{ padding:0 12px; }
     header{ border-bottom:2px solid #000; }
@@ -146,8 +377,12 @@
     .col{ break-inside:avoid; margin-bottom:16px; }
     .col-body{ overflow:visible; }
     .card{ break-inside:avoid; }
+    .dash{ display:block !important; height:auto; overflow:visible; }
+    .dash-col{ display:block; }
+    .dash-card{ break-inside:avoid; margin-bottom:14px; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -156,17 +391,27 @@
     <h1>Gestores del Cambio</h1>
     <p>Programa Nueva Etapa 2030 · NEA Eléctrica — Posadas marca el paso</p>
   </div>
-  <div class="stamp" id="stamp">CONECTANDO…</div>
+  <div style="text-align:right;">
+    <div class="who-pill" id="who-pill"></div>
+    <div class="stamp" id="stamp">CONECTANDO…</div>
+  </div>
 </header>
 
 <div class="toolbar" id="toolbar"></div>
 
 <main>
   <div class="board" id="board"></div>
+  <div class="dash" id="dash" style="display:none;"></div>
+  <div class="gantt" id="gantt" style="display:none;"></div>
+  <div class="actividad" id="actividad" style="display:none;"></div>
 </main>
 
 <div class="overlay" id="overlay">
   <div class="modal" id="modal"></div>
+</div>
+
+<div class="welcome" id="welcome">
+  <div class="welcome-box" id="welcome-box"></div>
 </div>
 
 <script>
@@ -181,54 +426,133 @@ const TIPOS_ACCION = ["Correctiva (ajuste)","Inductiva","Fundacional"];
 const ADHESION = ["Sí","No","A definir"];
 const VALIDACION = ["Pendiente","En revisión","Validado","Ajustar","Frenado"];
 
+// Horizonte ORIGINAL del Tamiz (Rafael + Hernán) — queda como referencia histórica en cada
+// tarjeta, ya no se usa para ordenar el kanban (ver HORIZONTE_CALC más abajo).
+const HORIZONTES_TAMIZ = ["Resolver rápido","H1","H2","H3"];
+const HORIZONTE_TAMIZ_INFO = {
+  "Resolver rápido": {ventana:"Ya"},
+  "H1": {ventana:"0-3 meses"},
+  "H2": {ventana:"3-6 meses"},
+  "H3": {ventana:"6-18 meses"},
+  "": {ventana:"Sin definir"}
+};
+
+// Horizonte ACTUAL: se calcula solo, a partir de los días que faltan hasta la Fecha de
+// cierre de cada frente, contados desde una fecha de referencia. Reemplaza al horizonte
+// elegido a mano — así el kanban se reordena solo a medida que se acerca un vencimiento,
+// sin que nadie tenga que tocarlo. Sin fecha de cierre cargada, el frente queda marcado
+// "(Definir Facundo)".
+function horizonteEntreFechas(fechaCierre, refDate){
+  if(!fechaCierre) return {h:"", order:99, cls:"hz-pending", label:"(Definir Facundo)"};
+  const cierre = new Date(fechaCierre + "T00:00:00");
+  const dias = Math.round((cierre - refDate) / 86400000);
+  let h, cls;
+  if(dias <= 30){ h = "H1"; cls = "hz-urgente"; }
+  else if(dias <= 90){ h = "H2"; cls = "hz-h1"; }
+  else { h = "H3"; cls = "hz-h2"; }
+  const diasTxt = dias < 0 ? `vencido hace ${Math.abs(dias)} d` : `en ${dias} d`;
+  const order = h === "H1" ? 0 : h === "H2" ? 1 : 2;
+  return {h, order, cls, label:`${h} · ${diasTxt}`};
+}
+// Para fechas REALES cargadas por Facundo: cuenta desde hoy — la urgencia real avanza con el calendario.
+function horizonteDesdeFecha(fechaCierre){
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  return horizonteEntreFechas(fechaCierre, hoy);
+}
+function horizonteCalc(c){ return horizonteDesdeFecha(c.fechaCierre); }
+
+// Sucursales previstas para el rollout de "Gestores del Cambio".
+// Las 4 quedan activas en el modelo desde el arranque, así no hay que tocar código cuando se sume data de Virasoro/Chaco.
+const SUCURSALES = ["Posadas","Obera","Virasoro","Chaco"];
+const SUCURSALES_ACTIVAS = SUCURSALES;
+
+function normalizeAdhesion(a){
+  const obj = {};
+  SUCURSALES.forEach(s => obj[s] = "");
+  if(a && typeof a === "object"){
+    SUCURSALES.forEach(s => { if(a[s]) obj[s] = a[s]; });
+  } else if(a){
+    // formato viejo: un único valor global -> lo asumimos referido a Posadas
+    obj["Posadas"] = a;
+  }
+  return obj;
+}
+
+function card(cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle, horizonteTamiz, fechaInicio, fechaCierre, esHito){
+  // Si no se pasa esHito explícitamente, se auto-marca como Hito todo frente que Rafael y
+  // Hernán ya definieron como "Resolver rápido" en el Tamiz — son los objetivos que se
+  // dijeron "esto arranca ya", así nadie tiene que acordarse de tildar el check a mano.
+  // Igual queda editable desde el modal para sumar otros hitos puntuales.
+  const hito = (esHito === undefined) ? (horizonteTamiz === "Resolver rápido") : !!esHito;
+  return {id: crypto.randomUUID(), cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion: normalizeAdhesion(adhesion), validacion, tipoAccion, detalle, horizonteTamiz: horizonteTamiz || "", fechaInicio: fechaInicio || "", fechaCierre: fechaCierre || "", esHito: hito};
+}
+
+// Atajo para los frentes que todavía no tienen relevamiento de campo cargado:
+// solo cat, frente, estado y (opcionalmente) el horizonte original del Tamiz.
+function cardH(cat, frente, estado, horizonteTamiz){
+  return card(cat, frente, estado, "", "", "", "", "", "", "", "", "", horizonteTamiz || "", "", "");
+}
+
+// Horizonte pre-cargado tal cual quedó definido en el Tamiz (Rafael + Hernán) y en el
+// Anexo de Cruce presentado a Facundo. Donde el frente de la app es fusión o no tiene
+// equivalente 1:1 en los 19 frentes del Tamiz, se deja "" (Sin definir) para no inventar un dato.
 let data = [
   card("Hacia adelante","Canales directos (Instaladores + Ferreterías/Blue)","Acción","Inducción",
     "Hablé con Ventas: no hay BD de ferreterías, se maneja de memoria. 2 instaladores activos identificados de palabra, sin registro.",
-    8,9,9,"Sí","Validado","Inductiva","Armar BD del canal y fijar objetivo comercial con Facundo esta semana."),
+    8,9,9,"Sí","Validado","Inductiva","Armar BD del canal y fijar objetivo comercial con Facundo esta semana.",
+    "Resolver rápido","",""),
   card("Hacia adelante","CRM — selección e implementación","Evaluación","",
     "Hoy nadie usa una herramienta de seguimiento comercial. Facundo trae experiencia de CRM previa.",
-    7,6,9,"","","",""),
-  card("Hacia adelante","Touch points / Customer journey","Por relevar","","", "","","","","",""),
-  card("Hacia adelante","UX en el punto de venta","Por relevar","","", "","","","","",""),
-  card("Hacia adelante","TOFU — captación y generación de leads","Por relevar","","", "","","","","",""),
+    7,6,9,"","","","","","",""),
+  cardH("Hacia adelante","Touch points / Customer journey","Por relevar","H1"),
+  cardH("Hacia adelante","UX en el punto de venta","Por relevar","H1"),
+  cardH("Hacia adelante","TOFU — captación y generación de leads","Por relevar",""),
   card("Hacia adelante","Base de clientes — ABM y tipificación","Relevamiento de campo","",
     "Base desactualizada según 6 de 8 vendedores; 5 de 8 dicen que actualizarla no es su función.",
-    "","","","","","",""),
-  card("Hacia adelante","Productividad y eficacia de vendedores","Por relevar","","", "","","","","",""),
-  card("Hacia adelante","Formación de equipos de atención al cliente","Por relevar","","", "","","","","",""),
-  card("Hacia adelante","Medios de mayor consulta e impacto","Por relevar","","", "","","","","",""),
+    "","","","","","","",
+    "Resolver rápido","",""),
+  cardH("Hacia adelante","Productividad y eficacia de vendedores","Por relevar","Resolver rápido"),
+  cardH("Hacia adelante","Formación de equipos de atención al cliente","Por relevar","Resolver rápido"),
+  cardH("Hacia adelante","Medios de mayor consulta e impacto","Por relevar","H3"),
 
   card("Operaciones internas","Stock — Pareto 80/20 general","Evaluación","",
     "Depósito confirma: reposición depende del criterio de una persona, no usan PEPS/UEPS ni ABC/Pareto hoy.",
-    6,8,8,"","Pendiente","",""),
-  card("Operaciones internas","Pareto de artículos (mostrador vs. corporativo)","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Clientes 80/20 (Pareto de clientes)","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Segmentos — similitudes y homogeneización","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Reposición (matriz de Kraljic)","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Contribución marginal vs. rotación (DuPont)","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Capacidad operativa por hora","Por relevar","","", "","","","","",""),
+    6,8,8,"","Pendiente","","",
+    "","",""),
+  cardH("Operaciones internas","Pareto de artículos (mostrador vs. corporativo)","Por relevar","H2"),
+  cardH("Operaciones internas","Clientes 80/20 (Pareto de clientes)","Por relevar",""),
+  cardH("Operaciones internas","Segmentos — similitudes y homogeneización","Por relevar",""),
+  cardH("Operaciones internas","Reposición (matriz de Kraljic)","Por relevar","H2"),
+  cardH("Operaciones internas","Contribución marginal vs. rotación (DuPont)","Por relevar","H2"),
+  cardH("Operaciones internas","Capacidad operativa por hora","Por relevar","H2"),
   card("Operaciones internas","Desviación de stock: Tango vs. físico","Relevamiento de campo","",
     "Depósito dice confiar 100% en el stock del sistema, pero 7 de 11 en la sucursal nombran falta de stock como lo que más falla.",
-    "","","","","","",""),
-  card("Operaciones internas","Depuración y organización de stock","Por relevar","","", "","","","","",""),
+    "","","","","","","",
+    "Resolver rápido","",""),
+  cardH("Operaciones internas","Depuración y organización de stock","Por relevar","Resolver rápido"),
   card("Operaciones internas","Costos actuales vs. histórico","Evaluación","",
     "Sin cultura de reportes instalada hoy en el área.",
-    7,7,8,"","Pendiente","",""),
-  card("Operaciones internas","Cobranzas y cuentas corrientes","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Habilitaciones, HyS, seguros","Por relevar","","", "","","","","",""),
-  card("Operaciones internas","Legajos y antigüedad","Por relevar","","", "","","","","",""),
+    7,7,8,"","Pendiente","","",
+    "Resolver rápido","",""),
+  cardH("Operaciones internas","Cobranzas y cuentas corrientes","Por relevar","Resolver rápido"),
+  cardH("Operaciones internas","Habilitaciones, HyS, seguros","Por relevar","H2"),
+  cardH("Operaciones internas","Legajos y antigüedad","Por relevar","H3"),
 
   card("Hacia atrás (Central)","Protocolo de respuesta (interno + hacia Central)","Acción","Aprendizaje piloto",
     "100% de la sucursal califica el acompañamiento de Central como parcial.",
-    7,8,6,"Sí","En revisión","Correctiva (ajuste)","Definir con Central quién participa, cuándo y cómo antes de instalarlo como norma."),
-  card("Hacia atrás (Central)","Agenda de trabajo con Central","Por relevar","","", "","","","","",""),
+    7,8,6,"Sí","En revisión","Correctiva (ajuste)","Definir con Central quién participa, cuándo y cómo antes de instalarlo como norma.",
+    "Resolver rápido","",""),
+  cardH("Hacia atrás (Central)","Agenda de trabajo con Central","Por relevar","H2"),
 ];
 
-function card(cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle){
-  return {id: crypto.randomUUID(), cat, frente, estado, etapaAccion, releva, fh, fe, ie, adhesion, validacion, tipoAccion, detalle};
-}
-
 const seedData = data; // guarda la carga inicial de ejemplo, para el primer arranque
+
+// Tabla de referencia Frente → Horizonte del Tamiz, armada a partir del seed. Sirve para
+// "reparar" tarjetas que ya estaban guardadas en la base ANTES de que existiera este campo
+// (o antes de cualquier campo nuevo que se agregue a futuro) — se emparejan por nombre de
+// frente, sin pisar nada que Facundo ya haya cargado en esa tarjeta.
+const TAMIZ_REFERENCE = {};
+seedData.forEach(c => { TAMIZ_REFERENCE[c.frente] = c.horizonteTamiz; });
 
 function setStamp(html){ document.getElementById("stamp").innerHTML = html; }
 function nowLabel(){
@@ -242,7 +566,24 @@ async function loadBoard(){
     if(!res.ok) throw new Error("no api");
     const remote = await res.json();
     if(remote && Array.isArray(remote) && remote.length){
-      data = remote;
+      let reparado = false;
+      data = remote.map(c => {
+        // Reparación: si esta tarjeta ya estaba guardada en la base ANTES de que existiera
+        // el campo del horizonte del Tamiz, se completa acá emparejando por nombre de
+        // frente — sin tocar estado, fechas, notas ni nada que ya se haya cargado.
+        let horizonteTamiz = c.horizonteTamiz || c.horizonte || "";
+        if(!horizonteTamiz && TAMIZ_REFERENCE[c.frente]){
+          horizonteTamiz = TAMIZ_REFERENCE[c.frente];
+          reparado = true;
+        }
+        let esHito = !!c.esHito;
+        if(!esHito && horizonteTamiz === "Resolver rápido" && c.esHito === undefined){
+          esHito = true;
+          reparado = true;
+        }
+        return {...c, adhesion: normalizeAdhesion(c.adhesion), horizonteTamiz, fechaInicio: c.fechaInicio || "", fechaCierre: c.fechaCierre || "", esHito};
+      });
+      if(reparado) await syncBoard(false); // guarda la reparación en la base para que quede así para todos, no solo en este navegador
     } else {
       // primera vez: no hay nada guardado todavía, sembramos con la data de ejemplo
       await syncBoard(false);
@@ -251,7 +592,9 @@ async function loadBoard(){
   } catch(e){
     setStamp(`SIN CONEXIÓN A LA BASE<br>Trabajando solo en este navegador`);
   }
+  await Promise.all([loadActividad(), loadConsultas()]);
   render();
+  showWelcome();
 }
 
 async function syncBoard(showFeedback = true){
@@ -268,6 +611,451 @@ async function syncBoard(showFeedback = true){
     setStamp(`SIN CONEXIÓN A LA BASE<br>Cambios solo en este navegador`);
   }
 }
+
+// ============================================================================
+// BITÁCORA DE ACTIVIDAD — quién abre la app y quién cambia qué
+// ----------------------------------------------------------------------------
+// Al abrir, la app pregunta "¿Quién quiere trabajar hoy?" (Rafa, Guille, Facu, Hernán).
+// Desde ahí se registra en /.netlify/functions/activity:
+//   · "apertura": alguien entró a la app
+//   · "alta": creó un frente nuevo
+//   · "edicion": guardó un frente con al menos un campo distinto (si no cambió nada, no cuenta)
+// La reparación automática del arranque (horizonte del Tamiz / hito) NO se registra:
+// no es actividad de nadie.
+// Es un sistema de honor: cada uno elige su nombre; no es una auditoría a prueba de todo.
+// ============================================================================
+const USUARIOS = ["Rafa","Guille","Facu","Hernán"];
+const USUARIO_ADMIN = "Hernán";   // único que ve la pestaña Actividad
+const USUARIO_FOCO = "Facu";      // a quien se le miden las "señales de uso real"
+const API_ACTIVIDAD = "/.netlify/functions/activity";
+const LS_USUARIO = "gdc_usuario";
+
+let currentUser = "";
+let actividad = [];   // eventos, del más nuevo al más viejo
+
+const CAMPOS_LABEL = {
+  frente:"Frente", cat:"Categoría", estado:"Estado", etapaAccion:"Etapa de acción",
+  releva:"Relevamiento de campo", fh:"Factib. humana", fe:"Factib. económica", ie:"Impacto económico",
+  validacion:"Validación", tipoAccion:"Tipo de acción", detalle:"Detalle de la acción",
+  horizonteTamiz:"Horizonte Tamiz", fechaInicio:"Fecha inicio", fechaCierre:"Fecha cierre", esHito:"Hito"
+};
+
+function lsGet(k){ try{ return localStorage.getItem(k) || ""; } catch(e){ return ""; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, v); } catch(e){} }
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+
+async function loadActividad(){
+  try{
+    const res = await fetch(API_ACTIVIDAD, {cache:"no-store"});
+    if(!res.ok) throw new Error("no api");
+    const lista = await res.json();
+    actividad = Array.isArray(lista) ? lista : [];
+  } catch(e){
+    actividad = [];
+  }
+}
+
+async function logEvent(tipo, frente, cambios){
+  if(!currentUser) return;
+  const ev = {user: currentUser, tipo, frente: frente || "", cambios: cambios || []};
+  // Se suma ya a la lista local (con hora del navegador) para que la pestaña Actividad
+  // lo muestre al instante; la base lo guarda con hora del servidor.
+  actividad.unshift({...ev, ts: new Date().toISOString()});
+  try{
+    await fetch(API_ACTIVIDAD, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(ev)});
+  } catch(e){ /* sin conexión: el evento queda solo en este navegador */ }
+}
+
+// Compara la tarjeta antes y después de guardar, campo por campo.
+function diffCard(antes, despues){
+  const cambios = [];
+  const norm = (k, v) => k === "esHito" ? (v ? "Sí" : "No") : String(v ?? "").trim();
+  Object.keys(CAMPOS_LABEL).forEach(k=>{
+    const de = norm(k, antes[k]), a = norm(k, despues[k]);
+    if(de !== a) cambios.push({campo: CAMPOS_LABEL[k], de, a});
+  });
+  SUCURSALES.forEach(s=>{
+    const de = (antes.adhesion && antes.adhesion[s]) || "";
+    const a = (despues.adhesion && despues.adhesion[s]) || "";
+    if(de !== a) cambios.push({campo: `Adhesión ${s}`, de, a});
+  });
+  return cambios;
+}
+
+function diasDesde(iso){
+  const d = new Date(iso); if(isNaN(d)) return null;
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+function haceTxt(iso){
+  const d = new Date(iso); if(isNaN(d)) return "—";
+  const min = Math.floor((Date.now() - d.getTime()) / 60000);
+  if(min < 1) return "recién";
+  if(min < 60) return `hace ${min} min`;
+  const h = Math.floor(min / 60);
+  if(h < 24) return `hace ${h} h`;
+  const dias = Math.floor(h / 24);
+  return dias === 1 ? "ayer" : `hace ${dias} días`;
+}
+function fechaHora(iso){
+  const d = new Date(iso); if(isNaN(d)) return "—";
+  return d.toLocaleDateString("es-AR", {day:"2-digit", month:"2-digit"}) + " " +
+         d.toLocaleTimeString("es-AR", {hour:"2-digit", minute:"2-digit"});
+}
+
+// --- Bienvenida -------------------------------------------------------------
+function showWelcome(){
+  const ultimo = lsGet(LS_USUARIO);
+  const box = document.getElementById("welcome-box");
+  box.innerHTML = `
+    <h2>¡Hola! ¿Quién quiere trabajar hoy?</h2>
+    <div class="sub">Elegí tu nombre para entrar al tablero.</div>
+    <div class="who-grid">
+      ${USUARIOS.map(u => `
+        <button class="who-btn ${u===ultimo ? "last" : ""}" data-user="${esc(u)}">
+          ${esc(u)}${u===ultimo ? `<span class="hint">la última vez</span>` : ""}
+        </button>`).join("")}
+    </div>`;
+  box.querySelectorAll(".who-btn").forEach(b => b.onclick = () => chooseUser(b.dataset.user));
+  document.getElementById("welcome").classList.add("show");
+}
+
+function chooseUser(u){
+  // Lo anterior de esta persona, ANTES de registrar la apertura de hoy.
+  const misCambios = actividad.filter(e => e.user === u && e.tipo !== "apertura");
+  currentUser = u;
+  lsSet(LS_USUARIO, u);
+  logEvent("apertura");
+  renderWhoPill();
+  render();
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const sinCierre = data.filter(c => !c.fechaCierre).length;
+  const vencidos = data.filter(c => c.fechaCierre && parseISO(c.fechaCierre) < hoy).length;
+  const nudges = [];
+  const convNuevas = data.map(c => ({c, n: noLeidos(c.id, u)})).filter(x => x.n.length);
+  if(convNuevas.length){
+    const autores = [...new Set(convNuevas.flatMap(x => x.n.map(m => m.user)))];
+    const frentes = convNuevas.slice(0, 3).map(x => `<b>${esc(x.c.frente)}</b>`).join(", ") + (convNuevas.length > 3 ? "…" : "");
+    nudges.push({cls:"alerta", txt:`💬 ${esc(autores.join(" y "))} te ${autores.length > 1 ? "escribieron" : "escribió"} en ${convNuevas.length === 1 ? "el frente" : `${convNuevas.length} frentes`}: ${frentes}.`});
+  }
+  if(misCambios.length){
+    const ult = misCambios[0];
+    const d = diasDesde(ult.ts);
+    nudges.push({cls: d !== null && d > 7 ? "alerta" : d !== null && d > 2 ? "aviso" : "ok",
+      txt:`Tu último cambio fue ${haceTxt(ult.ts)}${ult.frente ? ` en <b>${esc(ult.frente)}</b>` : ""}.`});
+  } else {
+    nudges.push({cls:"aviso", txt:"Todavía no registraste cambios en el tablero."});
+  }
+  if(sinCierre){
+    nudges.push({cls:"aviso", txt: u === USUARIO_FOCO
+      ? `Tenés <b>${sinCierre}</b> frentes esperando fecha de cierre.`
+      : `Hay <b>${sinCierre}</b> frentes sin fecha de cierre.`});
+  }
+  if(vencidos){
+    nudges.push({cls:"alerta", txt:`<b>${vencidos}</b> ${vencidos === 1 ? "frente tiene" : "frentes tienen"} la fecha de cierre vencida.`});
+  }
+
+  document.getElementById("welcome-box").innerHTML = `
+    <h2>¡Hola ${esc(u)}!</h2>
+    <div class="sub">Así está el tablero hoy:</div>
+    <ul class="nudges">${nudges.map(n => `<li class="${n.cls}">${n.txt}</li>`).join("")}</ul>
+    <button class="btn-primary" id="welcome-go" style="width:100%;">A trabajar</button>`;
+  document.getElementById("welcome-go").onclick = () => document.getElementById("welcome").classList.remove("show");
+}
+
+function renderWhoPill(){
+  const el = document.getElementById("who-pill");
+  el.innerHTML = currentUser ? `Trabajando: ${esc(currentUser)} <button id="who-change">cambiar</button>` : "";
+  const b = document.getElementById("who-change");
+  if(b) b.onclick = () => { if(view === "actividad") view = "kanban"; showWelcome(); };
+}
+
+// ============================================================================
+// CONVERSACIONES POR FRENTE
+// ----------------------------------------------------------------------------
+// Cualquiera de los cuatro puede escribir en un frente. Desde afuera, la tarjeta muestra
+// quiénes participan (💬 Rafa · Facu) y, si hay mensajes que vos no leíste, un aviso
+// "N nuevos". Los mensajes y las marcas de leído viven en /.netlify/functions/consultas,
+// separados del tablero, así nunca se pisan con un "Guardar".
+// ============================================================================
+const API_CONSULTAS = "/.netlify/functions/consultas";
+const USER_SLUG = {"Rafa":"rafa", "Guille":"guille", "Facu":"facu", "Hernán":"hernan"};
+let mensajes = [];   // todos los mensajes, del más viejo al más nuevo
+let leidos = {};     // usuario -> frenteId -> fecha ISO de la última lectura
+let frenteAbierto = null;
+
+async function loadConsultas(){
+  try{
+    const res = await fetch(API_CONSULTAS, {cache:"no-store"});
+    if(!res.ok) throw new Error("no api");
+    const j = await res.json();
+    mensajes = Array.isArray(j.mensajes) ? j.mensajes : [];
+    leidos = (j.leidos && typeof j.leidos === "object") ? j.leidos : {};
+  } catch(e){ /* sin conexión: se mantiene lo que ya había */ }
+}
+
+function hilo(frenteId){ return mensajes.filter(m => m.frenteId === frenteId); }
+function noLeidos(frenteId, user){
+  if(!user) return [];
+  const visto = (leidos[user] || {})[frenteId] || "";
+  return hilo(frenteId).filter(m => m.user !== user && m.ts > visto);
+}
+function uCls(u){ return `u-${USER_SLUG[u] || "hernan"}`; }
+
+// Fila de la tarjeta: 💬 participantes · cantidad · aviso de nuevos.
+function convRow(c){
+  const h = hilo(c.id);
+  if(!h.length) return "";
+  const participantes = [...new Set(h.map(m => m.user))];
+  const ultimo = h[h.length - 1].user;
+  const nuevos = noLeidos(c.id, currentUser);
+  const autoresNuevos = [...new Set(nuevos.map(m => m.user))].join(", ");
+  return `
+    <div class="conv-row" title="Conversación: ${h.length} mensaje(s). Borde marcado = escribió último.">
+      <span class="ico">💬</span>
+      ${participantes.map(u => `<span class="u-chip ${uCls(u)} ${u === ultimo ? "ultimo" : ""}">${esc(u)}</span>`).join("")}
+      <span class="n">${h.length}</span>
+      ${nuevos.length ? `<span class="nuevo-badge" title="Nuevo de ${esc(autoresNuevos)}">${nuevos.length} nuevo${nuevos.length > 1 ? "s" : ""}</span>` : ""}
+    </div>`;
+}
+
+function hiloHTML(frenteId, idsNuevos){
+  const h = hilo(frenteId);
+  if(!h.length) return `<div class="conv-vacia">Todavía no hay mensajes. Escribí una pregunta o un comentario sobre este frente.</div>`;
+  return h.map(m => `
+    <div class="msg ${uCls(m.user)} ${m.user === currentUser ? "mio" : ""} ${idsNuevos.has(m.id) ? "es-nuevo" : ""}">
+      <span class="quien"><b>${esc(m.user)}</b> · ${fechaHora(m.ts)}${idsNuevos.has(m.id) ? " · <b style='color:var(--red)'>nuevo</b>" : ""}</span>
+      <div class="burbuja">${esc(m.texto)}</div>
+    </div>`).join("");
+}
+
+function convSectionHTML(c, isNew){
+  if(isNew) return `
+    <div class="field">
+      <label>Conversación del frente</label>
+      <div class="conv-box"><div class="conv-vacia" style="padding:0;">La conversación se habilita una vez creado el frente.</div></div>
+    </div>`;
+  const idsNuevos = new Set(noLeidos(c.id, currentUser).map(m => m.id));
+  return `
+    <div class="field">
+      <label>Conversación del frente</label>
+      <div class="conv-box">
+        <div id="conv-lista">${hiloHTML(c.id, idsNuevos)}</div>
+        <div class="conv-input">
+          <textarea id="conv-texto" placeholder="Escribí como ${esc(currentUser)}… (Ctrl+Enter para enviar)"></textarea>
+          <button class="btn-enviar" id="conv-enviar" type="button">Enviar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function scrollHiloAbajo(){
+  const lista = document.getElementById("conv-lista");
+  if(lista) lista.lastElementChild && lista.lastElementChild.scrollIntoView({block:"nearest"});
+}
+
+async function marcarLeido(frenteId){
+  if(!currentUser || !hilo(frenteId).length) return;
+  if(!noLeidos(frenteId, currentUser).length) return;
+  (leidos[currentUser] = leidos[currentUser] || {})[frenteId] = new Date().toISOString();
+  render(); // saca el aviso "nuevo" de la tarjeta que está detrás del modal
+  try{
+    await fetch(API_CONSULTAS, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({tipo:"leido", user:currentUser, frenteId})});
+  } catch(e){}
+}
+
+async function postMensaje(frenteId, texto){
+  const c = data.find(x => x.id === frenteId);
+  const frente = c ? c.frente : "";
+  const res = await fetch(API_CONSULTAS, {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({tipo:"mensaje", user:currentUser, frenteId, frente, texto})});
+  if(!res.ok) throw new Error("send failed");
+  const j = await res.json();
+  mensajes.push(j.mensaje);
+  (leidos[currentUser] = leidos[currentUser] || {})[frenteId] = j.mensaje.ts;
+  logEvent("mensaje", frente, [{campo:"Mensaje", de:"", a:texto}]);
+  return j.mensaje;
+}
+
+async function enviarMensaje(frenteId){
+  const ta = document.getElementById("conv-texto");
+  const btn = document.getElementById("conv-enviar");
+  const texto = ta.value.trim();
+  if(!texto) return;
+  btn.disabled = true; btn.textContent = "Enviando…";
+  try{
+    await postMensaje(frenteId, texto);
+    ta.value = "";
+    document.getElementById("conv-lista").innerHTML = hiloHTML(frenteId, new Set());
+    scrollHiloAbajo();
+    render();
+  } catch(e){
+    alert("No se pudo enviar el mensaje. Revisá la conexión y probá de nuevo.");
+  }
+  btn.disabled = false; btn.textContent = "Enviar";
+}
+
+// Cada minuto (con la pestaña visible) trae mensajes nuevos de los demás.
+async function refrescarConsultas(){
+  if(document.hidden || !currentUser) return;
+  const antes = mensajes.length;
+  await loadConsultas();
+  if(mensajes.length === antes) return;
+  if(frenteAbierto && document.getElementById("conv-lista")){
+    const idsNuevos = new Set(noLeidos(frenteAbierto, currentUser).map(m => m.id));
+    document.getElementById("conv-lista").innerHTML = hiloHTML(frenteAbierto, idsNuevos);
+    scrollHiloAbajo();
+    marcarLeido(frenteAbierto);
+  }
+  render();
+}
+setInterval(refrescarConsultas, 60000);
+document.addEventListener("visibilitychange", refrescarConsultas);
+
+// --- Vista Actividad (solo Hernán) ------------------------------------------
+let feedFiltro = "Todos";
+
+function inicioSemana(d){
+  const r = new Date(d); r.setHours(0,0,0,0);
+  const dow = (r.getDay() + 6) % 7; // lunes = 0
+  r.setDate(r.getDate() - dow);
+  return r;
+}
+
+function renderActividad(){
+  const el = document.getElementById("actividad");
+  if(currentUser !== USUARIO_ADMIN){ el.innerHTML = ""; return; }
+
+  const hace7 = Date.now() - 7 * 86400000;
+  const cards = USUARIOS.map(u=>{
+    const evs = actividad.filter(e => e.user === u);
+    const aperturas = evs.filter(e => e.tipo === "apertura");
+    const cambios = evs.filter(e => e.tipo === "alta" || e.tipo === "edicion");
+    const msgs = mensajes.filter(m => m.user === u);
+    const ap7 = aperturas.filter(e => new Date(e.ts) >= hace7).length;
+    const ca7 = cambios.filter(e => new Date(e.ts) >= hace7).length;
+    const ms7 = msgs.filter(m => new Date(m.ts) >= hace7).length;
+    const ultCambio = evs.filter(e => e.tipo !== "apertura")[0];
+    const ultApertura = aperturas[0];
+    const d = ultCambio ? diasDesde(ultCambio.ts) : null;
+    const semaforo = d === null ? "rojo" : d <= 2 ? "verde" : d <= 7 ? "amarillo" : "rojo";
+    return `
+      <div class="act-user ${semaforo}">
+        <h4>${esc(u)}</h4>
+        <div class="linea"><span>Aperturas (7 d / total)</span><b>${ap7} / ${aperturas.length}</b></div>
+        <div class="linea"><span>Cambios (7 d / total)</span><b>${ca7} / ${cambios.length}</b></div>
+        <div class="linea"><span>Mensajes (7 d / total)</span><b>${ms7} / ${msgs.length}</b></div>
+        <div class="ultimo">
+          Último movimiento: <b>${ultCambio ? haceTxt(ultCambio.ts) : "nunca"}</b><br>
+          Última apertura: ${ultApertura ? haceTxt(ultApertura.ts) : "nunca"}
+        </div>
+      </div>`;
+  }).join("");
+
+  // Señales de uso real del foco: no cuántos clics, sino si el tablero avanza.
+  const delFoco = actividad.filter(e => e.user === USUARIO_FOCO && e.tipo !== "apertura");
+  const todosCambios = delFoco.flatMap(e => e.cambios || []);
+  const fechasCargadas = todosCambios.filter(c => c.campo === "Fecha cierre" && !c.de && c.a).length;
+  const movEstado = todosCambios.filter(c => c.campo === "Estado").length;
+  const relevamientos = todosCambios.filter(c => c.campo === "Relevamiento de campo" && c.a).length;
+  const altas = delFoco.filter(e => e.tipo === "alta").length;
+  const conCierre = data.filter(c => c.fechaCierre).length;
+
+  // Conversaciones: qué espera respuesta del foco y cuánto tarda en contestar.
+  const esperandoFoco = data.filter(c => {
+    const h = hilo(c.id);
+    return h.length && h[h.length - 1].user !== USUARIO_FOCO;
+  });
+  const demoras = [];
+  data.forEach(c => {
+    const h = hilo(c.id);
+    h.forEach((m, i) => {
+      if(m.user === USUARIO_FOCO) return;
+      const resp = h.slice(i + 1).find(x => x.user === USUARIO_FOCO);
+      if(resp) demoras.push(new Date(resp.ts) - new Date(m.ts));
+    });
+  });
+  const durTxt = ms => {
+    const min = Math.round(ms / 60000);
+    if(min < 60) return `${min} min`;
+    const h = ms / 3600000;
+    return h < 48 ? `${Math.round(h)} h` : `${Math.round(h / 24)} d`;
+  };
+  const demoraProm = demoras.length ? durTxt(demoras.reduce((a, b) => a + b, 0) / demoras.length) : "s/d";
+
+  // Cambios por semana (últimas 8) y por persona.
+  const semanas = [];
+  let s0 = inicioSemana(new Date());
+  for(let i = 0; i < 8; i++){ semanas.push(new Date(s0)); s0.setDate(s0.getDate() - 7); }
+  const filasSem = semanas.map(ini=>{
+    const fin = new Date(ini); fin.setDate(fin.getDate() + 7);
+    const celdas = USUARIOS.map(u=>{
+      const n = actividad.filter(e => e.user === u && e.tipo !== "apertura" && new Date(e.ts) >= ini && new Date(e.ts) < fin).length;
+      return `<td class="${n === 0 ? "cero" : n >= 5 ? "alto" : ""}">${n}</td>`;
+    }).join("");
+    return `<tr><td>Sem. ${ini.toLocaleDateString("es-AR", {day:"2-digit", month:"2-digit"})}</td>${celdas}</tr>`;
+  }).join("");
+
+  // Feed de movimientos.
+  const feedEvs = actividad.filter(e => feedFiltro === "Todos" || e.user === feedFiltro).slice(0, 80);
+  const feed = feedEvs.length ? feedEvs.map(e=>{
+    const tipoTxt = e.tipo === "apertura" ? "abrió la app" : e.tipo === "alta" ? "frente nuevo" : e.tipo === "mensaje" ? "💬 mensaje" : "edición";
+    const cambios = (e.cambios || []).map(c=>{
+      const corto = v => v.length > 60 ? v.slice(0, 60) + "…" : v;
+      return `<li><b>${esc(c.campo)}:</b> ${esc(corto(c.de) || "—")} → ${esc(corto(c.a) || "—")}</li>`;
+    }).join("");
+    return `
+      <div class="feed-item">
+        <div class="cab">
+          <span class="cuando">${fechaHora(e.ts)}</span>
+          <span class="quien">${esc(e.user)}</span>
+          <span class="tipo ${e.tipo}">${tipoTxt}</span>
+          ${e.frente ? `<span>${esc(e.frente)}</span>` : ""}
+        </div>
+        ${cambios && e.tipo === "edicion" ? `<ul>${cambios}</ul>` : ""}
+        ${e.tipo === "mensaje" && e.cambios && e.cambios[0] ? `<ul style="list-style:none; padding-left:0;"><li>“${esc(e.cambios[0].a.length > 160 ? e.cambios[0].a.slice(0, 160) + "…" : e.cambios[0].a)}”</li></ul>` : ""}
+      </div>`;
+  }).join("") : `<div class="act-vacio">Sin movimientos registrados todavía.</div>`;
+
+  el.innerHTML = `
+    <div class="act-users">${cards}</div>
+    <div class="act-grid">
+      <div class="dash-card">
+        <h3>Señales de uso real — ${esc(USUARIO_FOCO)}</h3>
+        <div class="senales">
+          <div class="senal"><div class="num">${fechasCargadas}</div><div class="lbl">Fechas de cierre cargadas</div></div>
+          <div class="senal"><div class="num">${movEstado}</div><div class="lbl">Frentes movidos de columna</div></div>
+          <div class="senal"><div class="num">${relevamientos}</div><div class="lbl">Relevamientos escritos o actualizados</div></div>
+          <div class="senal"><div class="num">${altas}</div><div class="lbl">Frentes nuevos creados</div></div>
+          <div class="senal"><div class="num" style="${esperandoFoco.length ? "color:var(--red);" : ""}">${esperandoFoco.length}</div><div class="lbl">Conversaciones esperando su respuesta</div></div>
+          <div class="senal"><div class="num">${demoraProm}</div><div class="lbl">Tiempo promedio de respuesta</div></div>
+        </div>
+        ${esperandoFoco.length ? `<div style="font-size:.74rem; color:var(--ink-soft); margin-top:10px;">Esperando: ${esperandoFoco.map(c => esc(c.frente)).join(" · ")}</div>` : ""}
+        <div style="font-size:.76rem; color:var(--ink-soft); margin-top:12px;">
+          Tablero hoy: <b style="color:var(--ink);">${conCierre} de ${data.length}</b> frentes con fecha de cierre real.
+        </div>
+      </div>
+      <div class="dash-card">
+        <h3>Movimientos por semana (cambios + mensajes)</h3>
+        <table class="tabla-sem">
+          <tr><th></th>${USUARIOS.map(u => `<th>${esc(u)}</th>`).join("")}</tr>
+          ${filasSem}
+        </table>
+      </div>
+    </div>
+    <div class="dash-card">
+      <h3>Últimos movimientos</h3>
+      <div class="feed-filtros">
+        ${["Todos", ...USUARIOS].map(u => `<button class="${u === feedFiltro ? "active" : ""}" data-f="${esc(u)}">${esc(u)}</button>`).join("")}
+      </div>
+      ${feed}
+    </div>`;
+  el.querySelectorAll(".feed-filtros button").forEach(b => b.onclick = () => { feedFiltro = b.dataset.f; renderActividad(); });
+}
+
 function score(c){
   const vals = [c.fh, c.fe, c.ie].filter(v => v !== "" && v !== null && v !== undefined);
   if(vals.length === 0) return null;
@@ -281,6 +1069,7 @@ function scoreClass(s){
 }
 
 let filter = "Todas";
+let view = "kanban";
 
 function renderToolbar(){
   const tb = document.getElementById("toolbar");
@@ -292,8 +1081,31 @@ function renderToolbar(){
     b.onclick = () => { filter = cat; render(); };
     tb.appendChild(b);
   });
+
+  const toggle = document.createElement("div");
+  toggle.className = "view-toggle";
+  const vistas = ["kanban","gantt","dashboard"];
+  if(currentUser === USUARIO_ADMIN) vistas.push("actividad");
+  const nombreVista = {kanban:"Kanban", gantt:"Gantt", dashboard:"Dashboard", actividad:"Actividad"};
+  vistas.forEach(v=>{
+    const b = document.createElement("button");
+    b.textContent = nombreVista[v];
+    if(v === view) b.classList.add("active");
+    b.onclick = async () => {
+      view = v;
+      if(v === "actividad"){ await loadActividad(); } // trae lo último que cargaron los demás
+      render();
+    };
+    toggle.appendChild(b);
+  });
+  tb.appendChild(toggle);
+
   const spacer = document.createElement("div");
   spacer.className = "spacer";
+  const csv = document.createElement("button");
+  csv.textContent = "Exportar Excel";
+  csv.className = "csv-btn";
+  csv.onclick = exportExcel;
   const pdf = document.createElement("button");
   pdf.textContent = "Exportar PDF";
   pdf.className = "pdf-btn";
@@ -302,30 +1114,80 @@ function renderToolbar(){
   add.textContent = "+ Nuevo frente";
   add.className = "add-btn";
   add.onclick = () => openModal(null);
-  const reset = document.createElement("button");
-  reset.textContent = "Cargar los 22 frentes completos";
-  reset.className = "reset-btn";
-  reset.onclick = () => {
-    if(confirm("Esto reemplaza TODO el tablero actual por el set completo de frentes (Adelante/Interno/Atrás). Los cambios que ya cargaron se pierden. ¿Seguro?")){
-      data = seedData.map(c => ({...c, id: crypto.randomUUID()}));
-      render();
-      syncBoard();
-    }
-  };
+  spacer.appendChild(csv);
   spacer.appendChild(pdf);
-  spacer.appendChild(reset);
   spacer.appendChild(add);
   tb.appendChild(spacer);
 }
 
+function exportExcel(){
+  const items = data.filter(c => filter === "Todas" || c.cat === filter);
+  const cols = ["Categoría","Horizonte actual (calculado)","Objetivo/Hito","Horizonte Tamiz (referencia)","Fecha inicio","Fecha cierre","Frente","Estado","Etapa de acción","Relevamiento de campo",
+    "Factib. humana","Factib. económica","Impacto económico","Score",
+    ...SUCURSALES.map(s => `¿Se pliega? — ${s}`),
+    "Estado de validación","Acción — Tipo","Acción — Detalle"];
+  const rows = items.sort(sortByJerarquia).map(c => [
+    c.cat, horizonteCalc(c).label, c.esHito ? "Sí" : "No", hzTamizLabel(c.horizonteTamiz), c.fechaInicio || "", c.fechaCierre || "", c.frente, c.estado, c.etapaAccion, c.releva,
+    c.fh, c.fe, c.ie, (score(c)===null? "" : Number(score(c).toFixed(1))),
+    ...SUCURSALES.map(s => c.adhesion[s] || ""),
+    c.validacion, c.tipoAccion, c.detalle
+  ]);
+
+  const ws = XLSX.utils.aoa_to_sheet([cols, ...rows]);
+
+  // Anchos de columna razonables para no tener que ajustar a mano
+  ws["!cols"] = [
+    {wch:18},{wch:20},{wch:12},{wch:20},{wch:12},{wch:12},{wch:34},{wch:16},{wch:16},{wch:45},
+    {wch:10},{wch:10},{wch:10},{wch:8},
+    ...SUCURSALES.map(()=>({wch:12})),
+    {wch:16},{wch:14},{wch:45}
+  ];
+  // Congelar encabezado
+  ws["!freeze"] = {xSplit:0, ySplit:1};
+
+  // Autofiltro sobre todo el rango
+  const range = XLSX.utils.decode_range(ws["!ref"]);
+  ws["!autofilter"] = {ref: XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:range.e.r, c:range.e.c}})};
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Gestores del Cambio");
+  XLSX.writeFile(wb, `gestores-del-cambio_${filter.replace(/\s/g,"-")}_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
 function render(){
   renderToolbar();
-  const board = document.getElementById("board");
-  board.innerHTML = "";
+  const boardEl = document.getElementById("board");
+  const dashEl = document.getElementById("dash");
+  const ganttEl = document.getElementById("gantt");
+  const actEl = document.getElementById("actividad");
+  boardEl.style.display = "none";
+  dashEl.style.display = "none";
+  ganttEl.style.display = "none";
+  actEl.style.display = "none";
+  if(view === "actividad" && currentUser !== USUARIO_ADMIN) view = "kanban";
+  if(view === "actividad"){
+    actEl.style.display = "block";
+    renderActividad();
+    return;
+  }
+  if(view === "dashboard"){
+    dashEl.style.display = "grid";
+    renderDashboard();
+    return;
+  }
+  if(view === "gantt"){
+    ganttEl.style.display = "block";
+    renderGantt();
+    return;
+  }
+  boardEl.style.display = "grid";
+
+  boardEl.innerHTML = "";
   ESTADOS.forEach(estado=>{
     const col = document.createElement("div");
     col.className = "col";
-    const items = data.filter(c => c.estado === estado && (filter === "Todas" || c.cat === filter));
+    const items = data.filter(c => c.estado === estado && (filter === "Todas" || c.cat === filter))
+      .sort(sortByJerarquia);
     const head = document.createElement("div");
     head.className = "col-head";
     head.innerHTML = `<span>${estado}</span><span class="count">${items.length}</span>`;
@@ -333,22 +1195,262 @@ function render(){
     body.className = "col-body";
     items.forEach(c=>{
       const s = score(c);
+      const hz = horizonteCalc(c);
       const el = document.createElement("div");
-      el.className = "card";
+      el.className = "card" + (noLeidos(c.id, currentUser).length ? " con-nuevo" : "");
       el.innerHTML = `
         <span class="cat-tag ${CATS[c.cat].cls}">${CATS[c.cat].short}</span>
+        <span class="hz-badge ${hz.cls}" title="Calculado desde la Fecha de cierre. Tamiz original: ${hzTamizLabel(c.horizonteTamiz)}">${hz.label}</span>
+        ${c.esHito ? `<span class="hito-badge" title="Objetivo / Hito">◆ Hito</span>` : ""}
         <h3>${c.frente}</h3>
         <div class="meta">
           <span class="etapa">${estado==="Acción" && c.etapaAccion ? c.etapaAccion : (c.tipoAccion || "—")}</span>
+          <span class="suc-chips">${adhesionChips(c)}</span>
           <span class="score ${scoreClass(s)}">${s===null? "s/d" : s.toFixed(1)}</span>
-        </div>`;
+        </div>
+        ${(c.fechaInicio || c.fechaCierre) ? `<div class="fechas">${c.fechaInicio || "s/i"} → ${c.fechaCierre || "s/c"}</div>` : ""}
+        ${convRow(c)}`;
       el.onclick = () => openModal(c.id);
       body.appendChild(el);
     });
     col.appendChild(head);
     col.appendChild(body);
-    board.appendChild(col);
+    boardEl.appendChild(col);
   });
+}
+
+// Etiqueta del horizonte ORIGINAL del Tamiz — solo referencia histórica.
+function hzTamizLabel(horizonteTamiz){
+  const hz = HORIZONTE_TAMIZ_INFO[horizonteTamiz || ""];
+  if(!horizonteTamiz) return "Sin definir";
+  return `${horizonteTamiz} · ${hz.ventana}`;
+}
+
+function sortByJerarquia(a, b){
+  const oa = horizonteCalc(a).order;
+  const ob = horizonteCalc(b).order;
+  if(oa !== ob) return oa - ob;
+  const sa = score(a), sb = score(b);
+  if(sa === null && sb === null) return 0;
+  if(sa === null) return 1;
+  if(sb === null) return -1;
+  return sb - sa;
+}
+
+function adhesionChips(c){
+  return SUCURSALES_ACTIVAS.map(s=>{
+    const v = c.adhesion[s];
+    if(!v) return "";
+    const cls = v==="Sí" ? "chip-si" : v==="No" ? "chip-no" : "chip-def";
+    return `<span class="suc-chip ${cls}" title="${s}: ${v}">${s[0]}</span>`;
+  }).join("");
+}
+
+function barColor(pct){
+  if(pct < 50) return "var(--red)";
+  if(pct < 75) return "var(--yellow)";
+  return "var(--green)";
+}
+
+function renderDashboard(){
+  const items = data.filter(c => filter === "Todas" || c.cat === filter);
+  const dashEl = document.getElementById("dash");
+
+  const total = items.length;
+  const scored = items.map(score).filter(s => s !== null);
+  const avgScore = scored.length ? (scored.reduce((a,b)=>a+b,0)/scored.length) : null;
+  const validados = items.filter(c => c.validacion === "Validado").length;
+  const enAccion = items.filter(c => c.estado === "Acción").length;
+
+  const porCat = {};
+  Object.keys(CATS).forEach(k => porCat[k] = items.filter(c=>c.cat===k).length);
+  const porHorizonte = {"H1":0, "H2":0, "H3":0, "(Definir Facundo)":0};
+  items.forEach(c => { const h = horizonteCalc(c).h || "(Definir Facundo)"; porHorizonte[h]++; });
+  const porEstado = {};
+  ESTADOS.forEach(e => porEstado[e] = items.filter(c=>c.estado===e).length);
+  const porSucursal = {};
+  SUCURSALES_ACTIVAS.forEach(s => porSucursal[s] = items.filter(c => c.adhesion[s] === "Sí").length);
+  const porValidacion = {};
+  ["Pendiente","En revisión","Validado","Ajustar","Frenado",""].forEach(v => porValidacion[v||"Sin evaluar"] = items.filter(c=>(c.validacion||"")===v).length);
+
+  const catColor = {"Hacia adelante":"var(--adelante)","Operaciones internas":"var(--interno)","Hacia atrás (Central)":"var(--atras)"};
+
+  function bars(obj, colorFn){
+    const max = Math.max(1, ...Object.values(obj));
+    return Object.entries(obj).map(([k,v])=>`
+      <div class="bar-row">
+        <span class="lbl">${k}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${(v/max*100)}%; background:${colorFn(k,v)}"></div></div>
+        <span class="val">${v}</span>
+      </div>`).join("");
+  }
+
+  dashEl.innerHTML = `
+    <div class="dash-col">
+      <div class="kpis">
+        <div class="kpi"><div class="num">${total}</div><div class="lbl">Frentes ${filter==="Todas"?"totales":"en "+filter}</div></div>
+        <div class="kpi"><div class="num">${avgScore===null?"s/d":avgScore.toFixed(1)}</div><div class="lbl">Score promedio</div></div>
+        <div class="kpi"><div class="num">${validados}</div><div class="lbl">Validados</div></div>
+        <div class="kpi"><div class="num">${enAccion}</div><div class="lbl">En acción</div></div>
+      </div>
+      <div class="dash-card">
+        <h3>Frentes por horizonte (calculado por fecha de cierre)</h3>
+        ${bars(porHorizonte, (k)=> k==="H1"?"var(--red)": k==="H2"?"var(--amber)": k==="H3"?"var(--interno)":"var(--line)")}
+      </div>
+      <div class="dash-card">
+        <h3>Frentes por categoría</h3>
+        ${bars(porCat, (k)=>catColor[k])}
+      </div>
+      <div class="dash-card">
+        <h3>Frentes por estado (Kanban)</h3>
+        ${bars(porEstado, ()=>"var(--amber)")}
+      </div>
+    </div>
+    <div class="dash-col">
+      <div class="dash-card">
+        <h3>Gestores del Cambio — frentes con adhesión "Sí" por sucursal</h3>
+        ${bars(porSucursal, ()=>"var(--green)")}
+      </div>
+      <div class="dash-card">
+        <h3>Estado de validación</h3>
+        ${bars(porValidacion, (k)=> k==="Validado"?"var(--green)": k==="Frenado"?"var(--red)": k==="En revisión"||k==="Ajustar"?"var(--yellow)":"var(--line)")}
+      </div>
+    </div>
+  `;
+}
+
+function parseISO(d){ return new Date(d + "T00:00:00"); }
+function fmtMonthShort(d){ return d.toLocaleDateString("es-AR", {month:"short", year:"2-digit"}).replace(".",""); }
+function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+function toISO(d){ return d.toISOString().slice(0,10); }
+
+// Fecha de arranque de Facundo en la sucursal — el "día 1" real del plan de inducción.
+// Las ventanas tentativas cuentan sus días desde ACÁ, no desde la fecha en que se abre el
+// navegador: así "Resolver rápido" significa siempre "primeros 30 días de Facundo", fijo,
+// en vez de un plazo que flota día a día antes de que arranque. Si la fecha de arranque
+// cambia, se actualiza solo acá.
+const KICKOFF_FACUNDO = "2026-09-14";
+
+// Ventana TENTATIVA (en días desde el arranque de Facundo) para frentes sin fecha real
+// cargada, a partir del horizonte original del Tamiz. Sirve solo para dejarle a Facundo un
+// Gantt de arranque armado — nunca se guarda como fecha real, se recalcula cada vez que se renderiza.
+const VENTANA_TENTATIVA = {
+  "Resolver rápido": {ini:0, fin:30},
+  "H1": {ini:0, fin:45},
+  "H2": {ini:15, fin:120},
+  "H3": {ini:30, fin:270},
+  "": {ini:15, fin:90} // sin ninguna referencia del Tamiz — estimación genérica de mediano plazo
+};
+function tentativeWindow(c){
+  const w = VENTANA_TENTATIVA[c.horizonteTamiz || ""];
+  const kickoff = parseISO(KICKOFF_FACUNDO);
+  return { ini: toISO(addDays(kickoff, w.ini)), fin: toISO(addDays(kickoff, w.fin)) };
+}
+
+function renderGantt(){
+  const ganttEl = document.getElementById("gantt");
+  const items = data.filter(c => filter === "Todas" || c.cat === filter);
+
+  // Todo frente entra al Gantt: con fecha real cargada (barra sólida) o con una ventana
+  // tentativa calculada del Tamiz (barra rayada), para que el tablero salga armado desde el arranque.
+  const conFechaReal = items.filter(c => c.fechaInicio && c.fechaCierre);
+  const plan = items.map(c=>{
+    if(c.fechaInicio && c.fechaCierre) return {c, ini:c.fechaInicio, fin:c.fechaCierre, tentativo:false};
+    const w = tentativeWindow(c);
+    return {c, ini:w.ini, fin:w.fin, tentativo:true};
+  });
+
+  // Rango del calendario: del mínimo al máximo de TODAS las fechas (reales + tentativas), con margen.
+  const allDates = [];
+  plan.forEach(p=>{ allDates.push(parseISO(p.ini)); allDates.push(parseISO(p.fin)); });
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const kickoff = parseISO(KICKOFF_FACUNDO);
+  allDates.push(hoy, kickoff);
+  let min = new Date(Math.min(...allDates));
+  let max = new Date(Math.max(...allDates));
+  min = addDays(min, -10);
+  max = addDays(max, 15);
+  const totalDias = Math.max(1, Math.round((max - min) / 86400000));
+  const pxPerDay = 22;
+  const trackWidth = totalDias * pxPerDay;
+  const pct = (d) => ((d - min) / 86400000) * pxPerDay;
+
+  // Encabezado de meses
+  const months = [];
+  let cursor = new Date(min.getFullYear(), min.getMonth(), 1);
+  while(cursor <= max){
+    const next = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1);
+    const start = cursor < min ? min : cursor;
+    const end = next < max ? next : max;
+    const w = Math.max(0, ((end - start) / 86400000) * pxPerDay);
+    months.push(`<div class="gantt-month" style="width:${w}px;">${fmtMonthShort(cursor)}</div>`);
+    cursor = next;
+  }
+
+  // Encabezado de días (número de día + sombreado de fines de semana)
+  const days = [];
+  let dcursor = new Date(min);
+  while(dcursor <= max){
+    const dow = dcursor.getDay();
+    const isWeekend = dow === 0 || dow === 6;
+    const isFirst = dcursor.getDate() === 1;
+    days.push(`<div class="gantt-day ${isWeekend ? "gantt-day-weekend" : ""} ${isFirst ? "gantt-day-first" : ""}" style="width:${pxPerDay}px;" title="${dcursor.toLocaleDateString("es-AR",{weekday:"long", day:"numeric", month:"long"})}">${dcursor.getDate()}</div>`);
+    dcursor = addDays(dcursor, 1);
+  }
+
+  const rows = plan.sort((a,b)=>sortByJerarquia(a.c,b.c)).map(({c, ini, fin, tentativo})=>{
+    const hz = horizonteCalc(c);
+    // Color de la barra: si es una fecha real, urgencia contada desde HOY; si es tentativa,
+    // contada desde el arranque de Facundo (el "Resolver rápido" pasa a ser siempre H1 fijo).
+    const hzBarra = tentativo ? horizonteEntreFechas(fin, kickoff) : horizonteDesdeFecha(fin);
+    const left = pct(parseISO(ini));
+    const width = Math.max(6, pct(parseISO(fin)) - left);
+    const hCls = hzBarra.h ? `gantt-bar-${hzBarra.h.toLowerCase()}` : "gantt-bar-pending";
+    const barCls = `gantt-bar ${hCls} ${tentativo ? "gantt-bar-tentativo" : ""}`;
+    const barLabel = tentativo ? `${c.frente} (tent.)` : c.frente;
+    const tip = tentativo
+      ? `${c.frente}: tentativo ${ini} → ${fin} — estimado desde el arranque de Facundo (${KICKOFF_FACUNDO}), todavía sin fecha real`
+      : `${c.frente}: ${ini} → ${fin}`;
+    const bar = `<div class="${barCls}" style="left:${left}px; width:${width}px;" title="${tip}">${barLabel}</div>`;
+    let hito = "";
+    if(c.esHito){
+      const fechaHito = c.fechaCierre || c.fechaInicio || fin;
+      const hLeft = pct(parseISO(fechaHito));
+      hito = `<div class="gantt-hito" style="left:${hLeft}px;" title="Hito: ${c.frente} — ${fechaHito}"></div>
+              <div class="gantt-hito-label" style="left:${hLeft}px;">◆ ${c.frente}</div>`;
+    }
+    return `
+      <div class="gantt-row" onclick="openModal('${c.id}')" title="Click para ver/editar el detalle completo">
+        <div class="gantt-row-label" title="${c.frente}">
+          <span class="hz-badge ${hz.cls}" style="margin:0; flex-shrink:0;">${hz.h || "s/d"}</span>
+          ${c.frente}
+        </div>
+        <div class="gantt-track">${bar}${hito}</div>
+      </div>`;
+  }).join("");
+
+  const todayLeft = pct(hoy);
+  const kickoffLeft = pct(kickoff);
+  const tentativas = plan.filter(p=>p.tentativo).length;
+
+  ganttEl.innerHTML = `
+    <div class="gantt-legend">
+      <span><span class="gantt-swatch gantt-swatch-h1"></span> H1 (0-30 d)</span>
+      <span><span class="gantt-swatch gantt-swatch-h2"></span> H2 (30-90 d)</span>
+      <span><span class="gantt-swatch gantt-swatch-h3"></span> H3 (+90 d)</span>
+      <span><span class="gantt-swatch gantt-swatch-tent"></span> Borde punteado = tentativo desde el arranque de Facundo (${KICKOFF_FACUNDO} — ${tentativas} de ${plan.length} frentes) — sólido = fecha real cargada</span>
+      <span><span class="gantt-swatch gantt-swatch-hito"></span> ◆ Objetivo / Hito</span>
+    </div>
+    <div class="gantt-scroll" style="min-width:${trackWidth + 260}px;">
+      <div class="gantt-months" style="padding-left:260px;">${months.join("")}</div>
+      <div class="gantt-days" style="padding-left:260px;">${days.join("")}</div>
+      <div class="gantt-body" style="position:relative;">
+        <div class="gantt-today" style="left:${260 + todayLeft}px;"><span class="gantt-today-lbl">Hoy</span></div>
+        ${Math.abs(kickoffLeft - todayLeft) > 3 ? `<div class="gantt-kickoff" style="left:${260 + kickoffLeft}px;"><span class="gantt-kickoff-lbl">Arranque Facundo</span></div>` : ""}
+        ${rows}
+      </div>
+    </div>
+  `;
 }
 
 function openModal(id){
@@ -381,6 +1483,27 @@ function openModal(id){
       <select id="f-etapa"><option value="">—</option>${ETAPAS_ACCION.map(e=>`<option ${e===c.etapaAccion?'selected':''}>${e}</option>`).join('')}</select>
     </div>
     <div class="field">
+      <label>Fechas</label>
+      <div class="row2">
+        <div><label style="font-weight:400;">Inicio</label><input id="f-fecha-inicio" type="date" value="${c.fechaInicio||""}"></div>
+        <div><label style="font-weight:400;">Cierre</label><input id="f-fecha-cierre" type="date" value="${c.fechaCierre||""}"></div>
+      </div>
+      <div style="margin-top:8px;">
+        <span class="hz-badge" id="hz-live"></span>
+        <span style="font-size:.72rem; color:var(--ink-soft); margin-left:6px;">Horizonte calculado solo — se actualiza según la Fecha de cierre.</span>
+      </div>
+    </div>
+    <div class="field">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input id="f-hito" type="checkbox" style="width:auto;" ${c.esHito?'checked':''}>
+        Es un Objetivo / Hito (aparece como ◆ en el Gantt)
+      </label>
+    </div>
+    <div class="field">
+      <label>Horizonte original del Tamiz (referencia histórica — no se usa para ordenar)</label>
+      <select id="f-horizonte-tamiz"><option value="" ${!c.horizonteTamiz?'selected':''}>Sin definir</option>${HORIZONTES_TAMIZ.map(h=>`<option value="${h}" ${h===c.horizonteTamiz?'selected':''}>${hzTamizLabel(h)}</option>`).join('')}</select>
+    </div>
+    <div class="field">
       <label>Relevamiento de campo</label>
       <textarea id="f-releva" placeholder="Qué se preguntó, qué contestaron, qué se encontró...">${c.releva||""}</textarea>
     </div>
@@ -392,15 +1515,20 @@ function openModal(id){
         <div><label style="font-weight:400;">Impacto económico</label><input id="f-ie" type="number" min="0" max="10" value="${c.ie}"></div>
       </div>
     </div>
-    <div class="field row2">
-      <div>
-        <label>Gestores del Cambio — ¿se pliega?</label>
-        <select id="f-adh"><option value="">—</option>${ADHESION.map(a=>`<option ${a===c.adhesion?'selected':''}>${a}</option>`).join('')}</select>
+    <div class="field">
+      <label>Gestores del Cambio — ¿quién se pliega?</label>
+      <div class="sucursales-grid">
+        ${SUCURSALES.map(s=>`
+          <div class="suc-row ${SUCURSALES_ACTIVAS.includes(s)?'':'suc-futura'}">
+            <span class="suc-name">${s}${SUCURSALES_ACTIVAS.includes(s)?'':' (próx. etapa)'}</span>
+            <select id="f-adh-${s}"><option value="">—</option>${ADHESION.map(a=>`<option ${a===c.adhesion[s]?'selected':''}>${a}</option>`).join('')}</select>
+          </div>
+        `).join('')}
       </div>
-      <div>
-        <label>Estado de validación</label>
-        <select id="f-val"><option value="">—</option>${VALIDACION.map(v=>`<option ${v===c.validacion?'selected':''}>${v}</option>`).join('')}</select>
-      </div>
+    </div>
+    <div class="field">
+      <label>Estado de validación</label>
+      <select id="f-val"><option value="">—</option>${VALIDACION.map(v=>`<option ${v===c.validacion?'selected':''}>${v}</option>`).join('')}</select>
     </div>
     <div class="field">
       <label>Acción a motorizar — Tipo</label>
@@ -411,6 +1539,8 @@ function openModal(id){
       <textarea id="f-detalle" placeholder="Qué se va a hacer, con quién, en qué plazo...">${c.detalle||""}</textarea>
     </div>
 
+    ${convSectionHTML(c, isNew)}
+
     <div class="modal-actions">
       <span class="score-live" id="score-live"></span>
       <button class="btn-primary" onclick="saveModal('${isNew?'':c.id}')">${isNew?'Crear':'Guardar'}</button>
@@ -418,10 +1548,32 @@ function openModal(id){
   `;
   document.getElementById("overlay").classList.add("show");
   updateLiveScore();
+  updateLiveHorizonte();
   ["f-fh","f-fe","f-ie"].forEach(id=>document.getElementById(id).addEventListener("input", updateLiveScore));
+  document.getElementById("f-fecha-cierre").addEventListener("input", updateLiveHorizonte);
   document.getElementById("f-estado").addEventListener("change", (e)=>{
     document.getElementById("etapa-wrap").style.display = e.target.value === "Acción" ? "" : "none";
   });
+  frenteAbierto = isNew ? null : c.id;
+  if(!isNew){
+    document.getElementById("conv-enviar").onclick = () => enviarMensaje(c.id);
+    document.getElementById("conv-texto").addEventListener("keydown", (e)=>{
+      if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); enviarMensaje(c.id); }
+    });
+    // Si llegó con mensajes nuevos, abre directo en la conversación.
+    if(noLeidos(c.id, currentUser).length){
+      setTimeout(() => document.getElementById("conv-lista").scrollIntoView({block:"start"}), 50);
+    }
+    marcarLeido(c.id);
+  }
+}
+
+function updateLiveHorizonte(){
+  const fechaCierre = document.getElementById("f-fecha-cierre").value;
+  const hz = horizonteCalc({fechaCierre});
+  const el = document.getElementById("hz-live");
+  el.className = `hz-badge ${hz.cls}`;
+  el.textContent = hz.label;
 }
 
 function updateLiveScore(){
@@ -432,10 +1584,12 @@ function updateLiveScore(){
   document.getElementById("score-live").textContent = s===null ? "Score: s/d" : `Score: ${s.toFixed(1)}`;
 }
 
-function closeModal(){ document.getElementById("overlay").classList.remove("show"); }
+function closeModal(){ frenteAbierto = null; document.getElementById("overlay").classList.remove("show"); }
 
 function saveModal(id){
   const estado = document.getElementById("f-estado").value;
+  const adhesion = {};
+  SUCURSALES.forEach(s => adhesion[s] = document.getElementById(`f-adh-${s}`).value);
   const vals = {
     frente: document.getElementById("f-frente").value.trim(),
     cat: document.getElementById("f-cat").value,
@@ -445,20 +1599,34 @@ function saveModal(id){
     fh: document.getElementById("f-fh").value,
     fe: document.getElementById("f-fe").value,
     ie: document.getElementById("f-ie").value,
-    adhesion: document.getElementById("f-adh").value,
+    adhesion: adhesion,
     validacion: document.getElementById("f-val").value,
     tipoAccion: document.getElementById("f-tipo").value,
     detalle: document.getElementById("f-detalle").value,
+    horizonteTamiz: document.getElementById("f-horizonte-tamiz").value,
+    fechaInicio: document.getElementById("f-fecha-inicio").value,
+    fechaCierre: document.getElementById("f-fecha-cierre").value,
+    esHito: document.getElementById("f-hito").checked,
   };
   if(!vals.frente){ alert("Ponele un nombre al frente."); return; }
+  const convTa = document.getElementById("conv-texto");
+  const textoPendiente = (id && convTa) ? convTa.value.trim() : "";
   if(id){
-    Object.assign(data.find(x=>x.id===id), vals);
+    const actual = data.find(x=>x.id===id);
+    const cambios = diffCard(actual, vals);
+    Object.assign(actual, vals);
+    if(cambios.length) logEvent("edicion", vals.frente, cambios);
   } else {
-    data.push(card(vals.cat, vals.frente, vals.estado, vals.etapaAccion, vals.releva, vals.fh, vals.fe, vals.ie, vals.adhesion, vals.validacion, vals.tipoAccion, vals.detalle));
+    data.push(card(vals.cat, vals.frente, vals.estado, vals.etapaAccion, vals.releva, vals.fh, vals.fe, vals.ie, vals.adhesion, vals.validacion, vals.tipoAccion, vals.detalle, vals.horizonteTamiz, vals.fechaInicio, vals.fechaCierre, vals.esHito));
+    logEvent("alta", vals.frente);
   }
   closeModal();
   render();
   syncBoard();
+  if(textoPendiente){
+    postMensaje(id, textoPendiente).then(render).catch(() =>
+      alert("El frente se guardó, pero el mensaje no se pudo enviar. Revisá la conexión y escribilo de nuevo."));
+  }
 }
 
 document.getElementById("overlay").addEventListener("click", (e)=>{
